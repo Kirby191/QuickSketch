@@ -1,0 +1,44 @@
+# ==========================================
+# REGOLE GLOBALI (Valide per tutto il progetto)
+# ==========================================
+node_modules/
+npm-debug.log
+yarn-error.log
+.DS_Store
+Thumbs.db
+
+# IDE e configurazioni locali
+.idea/
+.project
+.settings/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# ==========================================
+# REGOLE FRONT-END (Angular)
+# ==========================================
+# Compilazione e output
+front-end/dist/
+front-end/tmp/
+front-end/out-tsc/
+front-end/bazel-out/
+
+# Cache, test e log di Angular
+front-end/.angular/cache/
+front-end/.sass-cache/
+front-end/coverage/
+testem.log
+
+# ==========================================
+# REGOLE BACK-END (Express & SQLite)
+# ==========================================
+# File di ambiente
+back-end/.env
+
+# Database locale SQLite
+back-end/*.sqlite
+back-end/*.db
