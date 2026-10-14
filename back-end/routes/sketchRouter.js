@@ -1,5 +1,6 @@
 import express from "express";
 import { SketchController } from "../controllers/SketchController.js";
+import { AttemptController } from "../controllers/AttemptController.js";
 import { enforceAuthentication, optionalAuthentication } from "../middleware/authMiddleware.js";
 
 export const sketchRouter = express.Router();
@@ -107,3 +108,41 @@ sketchRouter.post("/", enforceAuthentication, SketchController.createSketch);
  *         description: Sketch non trovato
  */
 sketchRouter.delete("/:id", enforceAuthentication, SketchController.deleteSketch);
+
+/**
+ * @swagger
+ * /api/sketches/{id}/attempts:
+ *   post:
+ *     summary: Invia un tentativo per indovinare la parola di uno sketch (Max 10 tentativi)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID dello sketch da indovinare
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - guess
+ *             properties:
+ *               guess:
+ *                 type: string
+ *                 example: cane
+ *     responses:
+ *       200:
+ *         description: Esito del tentativo (IN_PROGRESS, WON oppure LOST con soluzione svelata)
+ *       400:
+ *         description: Tentativo duplicato, input vuoto o 10 tentativi già esauriti
+ *       403:
+ *         description: L'autore non può indovinare il proprio sketch
+ *       404:
+ *         description: Sketch non trovato
+ */
+sketchRouter.post("/:id/attempts", enforceAuthentication, AttemptController.submitGuess);
