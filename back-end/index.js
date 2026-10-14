@@ -6,6 +6,7 @@ import { authenticationRouter } from './routes/authRouter.js';
 import { wordRouter } from './routes/wordRouter.js';
 import swaggerUI from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import { initDatabase } from './models/Database.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,13 +49,25 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 // Error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500).json({
-        code: err.status || 500,
-        description: err.message || "Si è verificato un errore interno"
+    const status = err.status || 500;
+    const message = err.message || "Si è verificato un errore interno del server";
+
+    // Se è un errore del server (500), stampiamo lo stack trace completo per il debug
+    // Se è un errore della richiesta client (4xx), stampiamo una riga pulita e leggibile.
+    if (status >= 500) {
+        console.error(`[ERROR ${status}] ${req.method} ${req.originalUrl}:`, err.stack || err);
+    } else {
+        console.warn(`[WARN ${status}] ${req.method} ${req.originalUrl} -> ${message}`);
+    }
+
+    res.status(status).json({
+        code: status,
+        description: message
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server avviato sulla porta ${PORT}`);
+initDatabase().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server in ascolto sulla porta ${PORT}`);
+    });
 });

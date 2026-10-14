@@ -72,7 +72,7 @@ authenticationRouter.post("/login", async (req, res, next) => {
         if (user) {
             const token = AuthController.issueToken(user);
             res.json({
-                user: { id: user.id, username: user.username },
+                user: { id: user.id, username: user.username, role: user.role },
                 token
             });
         } else {

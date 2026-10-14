@@ -32,12 +32,14 @@ export class AuthController {
         // Salva l'utente nel database
         const newUser = await User.create({
             username: normalizedUsername,
-            password: hashedPassword
+            password: hashedPassword,
+            role: 'USER' // Forzato lato server per impedire Privilege Escalation
         });
 
         return {
             id: newUser.id,
             username: newUser.username,
+            role: newUser.role,
             createdAt: newUser.createdAt
         };
     }
@@ -64,7 +66,7 @@ export class AuthController {
     // Generazione del token JWT
     static issueToken(user) {
         return Jwt.sign(
-            { userId: user.id, username: user.username },
+            { userId: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION || `${24 * 60 * 60}s` }
         );

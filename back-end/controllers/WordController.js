@@ -60,4 +60,29 @@ export class WordController {
             next(err);
         }
     }
+
+    // Rimuove una parola dal dizionario tramite il suo testo (Solo Admin)
+    static async deleteWord(req, res, next) {
+        try {
+            const rawText = req.params.text;
+            if (!rawText) {
+                return res.status(400).json({ error: "Specifica la parola da eliminare." });
+            }
+
+            const normalizedText = rawText.trim().toLowerCase();
+            const wordToDelete = await Word.findOne({ where: { text: normalizedText } });
+
+            if (!wordToDelete) {
+                return res.status(404).json({ error: `La parola '${normalizedText}' non esiste nel dizionario.` });
+            }
+
+            await wordToDelete.destroy(); // Elimina l'entità dal DB
+
+            res.json({
+                message: `Parola '${normalizedText}' rimossa con successo dal pool.`
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

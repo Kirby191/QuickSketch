@@ -15,6 +15,12 @@ export function createModel(database) {
         password: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        role: {
+            // Può essere 'USER' oppure 'ADMIN'
+            type: DataTypes.STRING,
+            allowNull: false,
+            defaultValue: 'USER'
         }
     });
 }

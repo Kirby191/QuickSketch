@@ -1,6 +1,6 @@
 import express from "express";
 import { WordController } from "../controllers/WordController.js";
-import { enforceAuthentication } from "../middleware/authMiddleware.js";
+import { enforceAuthentication, enforceAdmin } from "../middleware/authMiddleware.js";
 
 export const wordRouter = express.Router();
 
@@ -31,7 +31,7 @@ wordRouter.get("/random", enforceAuthentication, WordController.getRandomWords);
  * @swagger
  * /api/words:
  *   post:
- *     summary: Aggiunge una nuova parola al database
+ *     summary: Aggiunge una nuova parola al database (Admin)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -53,8 +53,35 @@ wordRouter.get("/random", enforceAuthentication, WordController.getRandomWords);
  *     responses:
  *       201:
  *         description: Parola aggiunta con successo
+ *       403:
+ *          description: Accesso negato (solo per amministratori)
  *       409:
  *         description: Parola già esistente
  */
 // POST /api/words
-wordRouter.post("/", enforceAuthentication, WordController.addWord);
+wordRouter.post("/", enforceAuthentication, enforceAdmin, WordController.addWord);
+
+/**
+ * @swagger
+ * /api/words/{text}:
+ *   delete:
+ *     summary: Rimuove una parola dal dizionario tramite il suo nome (Admin)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: text
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: clessidra
+ *     responses:
+ *       200:
+ *         description: Parola rimossa con successo
+ *       403:
+ *         description: Accesso negato (Utente non Admin)
+ *       404:
+ *         description: Parola non trovata
+ */
+// Solo un ADMIN può rimuovere una parola dal pool tramite il suo nome
+wordRouter.delete("/:text", enforceAuthentication, enforceAdmin, WordController.deleteWord);
