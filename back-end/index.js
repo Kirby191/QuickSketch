@@ -1,36 +1,23 @@
+// Configura il server Express
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import './models/Database.js'; // Avvia la sincronizzazione del DB e il seeding delle parole
+
+// Importa le rotte
 import { authenticationRouter } from './routes/authRouter.js';
 import { wordRouter } from './routes/wordRouter.js';
+import { sketchRouter } from './routes/sketchRouter.js';
+
+// Importa Swagger per la documentazione e testing
 import swaggerUI from 'swagger-ui-express';
-import swaggerJSDoc from 'swagger-jsdoc';
+import { swaggerSpec } from './utils/swaggerSpec.js';
+
+// Utils
 import { initDatabase } from './models/Database.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const swaggerSpec = swaggerJSDoc({
-    definition: {
-        openapi: '3.1.0',
-        info: {
-            title: 'QUICKSKETCH REST API',
-            version: '1.0.0',
-            description: 'Documentazione e test interattivo per il back-end'
-        },
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT'
-                }
-            }
-        }
-    },
-    apis: ['./routes/*Router.js'] // Legge i commenti @swagger dentro routes/
-});
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' })); // Limite alzato a 5mb per ospitare comodamente le stringhe Base64
@@ -38,6 +25,8 @@ app.use(express.json({ limit: '5mb' })); // Limite alzato a 5mb per ospitare com
 // Montiamo le rotte standard
 app.use('/api/auth', authenticationRouter);
 app.use('/api/words', wordRouter);
+app.use('/api/sketches', sketchRouter);
+
 
 // Endpoint di stato
 app.get('/api/status', (req, res) => {
