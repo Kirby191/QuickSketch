@@ -2,17 +2,23 @@ import { Sequelize } from "sequelize";
 import { createModel as createUserModel } from "./User.js";
 import { createModel as createSketchModel } from "./Sketch.js";
 import { createModel as createAttemptModel } from "./Attempt.js";
+import { createModel as createWordModel } from "./Word.js";
 import 'dotenv/config';
 
-export const database = new Sequelize(process.env.DB_CONNECTION_URI || "sqlite:database.db");
+export const database = new Sequelize(process.env.DB_CONNECTION_URI || "sqlite:database.db", 
+    { 
+        // disabilita il logging delle query SQL per migliorare leggibilità della console
+        logging: false
+    });
 
 // Inizializza i modelli
 createUserModel(database);
 createSketchModel(database);
 createAttemptModel(database);
+createWordModel(database);
 
 // Estrae i modelli definiti dal database
-export const { User, Sketch, Attempt } = database.models;
+export const { User, Sketch, Attempt, Word } = database.models;
 
 // AUTORE -> SKETCH (Foreign Key: authorId)
 User.hasMany(Sketch, { 
