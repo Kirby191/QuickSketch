@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, User } from '../models/api.models';
+import { AuthResponse, User } from '../../models/api.models';
 
 const TOKEN_KEY = 'quicksketch_jwt_token';
 const USER_KEY = 'quicksketch_user';

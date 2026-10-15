@@ -33,6 +33,10 @@ front-end/.sass-cache/
 front-end/coverage/
 testem.log
 
+# Report e artefatti dei test End-to-End (Playwright)
+playwright-report/
+test-results/
+
 # ==========================================
 # REGOLE BACK-END (Express & SQLite)
 # ==========================================
@@ -42,3 +46,9 @@ back-end/.env
 # Database locale SQLite
 back-end/*.sqlite
 back-end/*.db
+
+# File temporanei journal/WAL di SQLite
+back-end/*.db-journal
+back-end/*.db-wal
+back-end/*.db-shm
+back-end/*.sqlite-journal
