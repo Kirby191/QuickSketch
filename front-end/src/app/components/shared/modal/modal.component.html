@@ -1,0 +1,40 @@
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm"
+    data-testid="modal-backdrop"
+    (click)="close()"
+  >
+    <!-- Su mobile: Bottom-Sheet (rounded-t-3xl, larghezza 100%). Su >=640px (sm): Card centrata (rounded-2xl) -->
+    <div
+      class="relative w-full {{ maxWidthClass() }} max-h-[92dvh] flex flex-col rounded-t-3xl sm:rounded-2xl bg-slate-900 border-t sm:border border-slate-800 shadow-2xl text-slate-100 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      data-testid="modal-container"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Indicatore visivo superiore (Pill Handle) tipico delle interfacce mobile touch -->
+      <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mt-3 sm:hidden"></div>
+
+      <!-- Header del Modale con Touch Target da 44x44px (w-11 h-11) -->
+      <div class="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 bg-slate-900/50 shrink-0">
+        <h3 class="text-base sm:text-lg font-bold tracking-tight text-white truncate pr-2" data-testid="modal-title">
+          {{ title() }}
+        </h3>
+        <button
+          type="button"
+          (click)="close()"
+          data-testid="modal-close-btn"
+          aria-label="Chiudi finestra"
+          class="w-11 h-11 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Corpo scrollabile internamente se si apre la tastiera virtuale dello smartphone -->
+      <div class="p-5 sm:p-6 overflow-y-auto overscroll-contain">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+}
