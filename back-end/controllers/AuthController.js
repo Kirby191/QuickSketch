@@ -1,6 +1,7 @@
 import Jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { User } from "../models/Database.js";
+import { HttpError } from "../utils/HttpError.js";
 
 const SALT_ROUNDS = 10;
 
