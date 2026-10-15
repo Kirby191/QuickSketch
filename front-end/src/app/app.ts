@@ -1,12 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { NavbarComponent } from './components/shared/navbar/navbar.component';
+import { AuthService } from './services/auth/auth.service';
+import { AuthModalComponent } from './components/auth-modal/auth-modal.component/auth-modal.component';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.scss',
+  standalone: true,
+  imports: [RouterOutlet, NavbarComponent, AuthModalComponent],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('front-end');
+  readonly authService = inject(AuthService);
 }

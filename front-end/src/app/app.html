@@ -1,7 +1,12 @@
-<div class="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
-  <h1 class="text-4xl font-extrabold text-indigo-400 tracking-tight mb-3">
-    🎨 QuickSketch
-  </h1>
-  <p class="text-slate-300 mb-6">Tailwind CSS è attivo e funzionante!</p>
+<div class="min-h-dvh bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+  <!-- Barra di navigazione responsive -->
+  <app-navbar />
+
+  <!-- Contenuto principale fluido delle rotte -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <router-outlet />
+  </main>
+
+  <!-- Modale condiviso di Login / Registrazione-->
+  <app-auth-modal />
 </div>
-<router-outlet />

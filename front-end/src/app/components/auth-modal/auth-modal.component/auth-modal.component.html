@@ -1,0 +1,138 @@
+<app-modal
+  [isOpen]="authService.isAuthModalOpen()"
+  [title]="modalTitle()"
+  (closed)="onClose()"
+>
+  <div class="auth-wrapper">
+    <!-- Selettore Tab: Login vs Registrazione -->
+    <div class="auth-tabs">
+      <button
+        type="button"
+        data-testid="auth-tab-login"
+        (click)="switchMode('LOGIN')"
+        [class]="
+          authService.authModalMode() === 'LOGIN'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'text-slate-400 hover:text-slate-200'
+        "
+      >
+        Accedi
+      </button>
+      <button
+        type="button"
+        data-testid="auth-tab-signup"
+        (click)="switchMode('SIGNUP')"
+        [class]="
+          authService.authModalMode() === 'SIGNUP'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'text-slate-400 hover:text-slate-200'
+        "
+      >
+        Registrati
+      </button>
+    </div>
+
+    <!-- Banner Errore dal Server (es. 401 o 409) -->
+    @if (errorMessage()) {
+      <div
+        data-testid="auth-error-banner"
+        class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-center gap-2.5"
+      >
+        <span>⚠️</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Form con spaziatura verticale calibrata (20px tra i gruppi, 8px tra label e input) -->
+    <form (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Gruppo 1: Username -->
+      <div class="form-field">
+        <label for="auth-username">Username</label>
+        <div class="input-box">
+          <input
+            id="auth-username"
+            name="username"
+            type="text"
+            required
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="next"
+            data-testid="auth-username-input"
+            [ngModel]="username()"
+            (ngModelChange)="username.set($event)"
+            placeholder="Es. Artista99"
+          />
+        </div>
+      </div>
+
+      <!-- Gruppo 2: Password (con pulsante Mostra allineato in Flexbox dentro il box) -->
+      <div class="form-field">
+        <label for="auth-password">Password</label>
+        <div class="input-box">
+          <input
+            id="auth-password"
+            name="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            required
+            autocomplete="current-password"
+            enterkeyhint="done"
+            data-testid="auth-password-input"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            placeholder="Minimo 4 caratteri"
+          />
+          <button
+            type="button"
+            (click)="showPassword.set(!showPassword())"
+            class="toggle-pwd-btn"
+          >
+            {{ showPassword() ? 'Nascondi' : 'Mostra' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Gruppo 3: Conferma Password (visibile solo in SIGNUP) -->
+      @if (authService.authModalMode() === 'SIGNUP') {
+        <div class="form-field">
+          <label for="auth-confirm-password">Conferma Password</label>
+          <div class="input-box">
+            <input
+              id="auth-confirm-password"
+              name="confirmPassword"
+              [type]="showPassword() ? 'text' : 'password'"
+              required
+              enterkeyhint="done"
+              data-testid="auth-confirm-password-input"
+              [ngModel]="confirmPassword()"
+              (ngModelChange)="confirmPassword.set($event)"
+              placeholder="Ripeti la password"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- Feedback Validazione Client-Side -->
+      @if (clientValidationError()) {
+        <p data-testid="auth-validation-hint" class="text-xs font-medium text-amber-400 pt-1">
+          {{ clientValidationError() }}
+        </p>
+      }
+
+      <!-- Pulsante Principale di Invio -->
+      <button
+        type="submit"
+        data-testid="auth-submit-btn"
+        [disabled]="!isFormValid() || isLoading()"
+        class="submit-btn"
+      >
+        @if (isLoading()) {
+          <span>Elaborazione in corso...</span>
+        } @else {
+          <span>{{ authService.authModalMode() === 'LOGIN' ? 'Entra in Gioco' : 'Completa Registrazione' }}</span>
+        }
+      </button>
+    </form>
+  </div>
+</app-modal>
