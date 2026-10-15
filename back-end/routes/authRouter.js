@@ -28,19 +28,8 @@ export const authenticationRouter = express.Router();
  *         description: Username già in uso
  */
 // Rotta di Registrazione: POST /api/auth/signup
-authenticationRouter.post("/signup", async (req, res, next) => {
-    try {
-        const user = await AuthController.saveUser(req, res);
-        const token = AuthController.issueToken(user);
-        res.status(201).json({
-            message: "Registrazione completata con successo",
-            user,
-            token
-        });
-    } catch (err) {
-        next(err);
-    }
-});
+authenticationRouter.post("/signup", AuthController.signup);
+
 /**
  * @swagger
  * /api/auth/login:
@@ -66,19 +55,4 @@ authenticationRouter.post("/signup", async (req, res, next) => {
  *         description: Credenziali non valide
  */
 // Rotta di Login: POST /api/auth/login
-authenticationRouter.post("/login", async (req, res, next) => {
-    try {
-        const user = await AuthController.checkCredentials(req, res);
-        if (user) {
-            const token = AuthController.issueToken(user);
-            res.json({
-                user: { id: user.id, username: user.username, role: user.role },
-                token
-            });
-        } else {
-            res.status(401).json({ error: "Credenziali non valide. Riprova." });
-        }
-    } catch (err) {
-        next(err);
-    }
-});
+authenticationRouter.post("/login", AuthController.login);

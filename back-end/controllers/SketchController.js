@@ -47,7 +47,7 @@ export class SketchController {
                 status: isAuthor ? 'AUTHOR' : (userAttempt ? userAttempt.status : 'NOT_STARTED'),
                 attemptsCount: userAttempt ? userAttempt.attemptsCount : 0,
                 remainingAttempts: userAttempt ? (MAX_ATTEMPTS - userAttempt.attemptsCount) : MAX_ATTEMPTS,
-                guessedWords: userAttempt ? JSON.parse(userAttempt.guessedWords || '[]') : []
+                guessedWords: (userAttempt && userAttempt.guessedWords) ? JSON.parse(userAttempt.guessedWords) : []
             } : null
         };
     }
@@ -123,7 +123,7 @@ export class SketchController {
                 where: whereClause,
                 include: [
                     { model: User, as: 'author', attributes: ['id', 'username'] },
-                    { model: Attempt, as: 'attempts', attributes: ['playerId', 'status', 'attemptsCount', 'guessedWords'] }
+                    { model: Attempt, as: 'attempts', attributes: ['playerId', 'status', 'attemptsCount'] }
                 ],
                 order: [['createdAt', 'DESC']] // Dal più recente al meno recente
             });

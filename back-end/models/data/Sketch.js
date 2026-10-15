@@ -24,5 +24,11 @@ export function createModel(database) {
             type: DataTypes.INTEGER, // Tempo impiegato in secondi
             allowNull: true
         }
+    }, {
+        indexes: [
+            { fields: ['authorId'] },
+            { fields: ['category'] },
+            { fields: ['createdAt'] }
+        ]
     });
 }

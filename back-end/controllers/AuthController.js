@@ -6,61 +6,66 @@ const SALT_ROUNDS = 10;
 
 export class AuthController {
 
-    // Registrazione di un nuovo utente
-    static async saveUser(req, res) {
-        const { username, password } = req.body;
+    // POST /api/auth/signup
+    static async signup(req, res, next) {
+        try {
+            const { username, password } = req.body;
+            if (!username || !password || username.trim().length < 3 || password.length < 4) {
+                throw new HttpError(400, "Username (min 3 caratteri) e password (min 4 caratteri) sono obbligatori.");
+            }
 
-        if (!username || !password || username.trim().length < 3 || password.length < 4) {
-            const error = new Error("Username (min 3 caratteri) e password (min 4 caratteri) sono obbligatori.");
-            error.status = 400;
-            throw error;
+            const normalizedUsername = username.trim();
+            const existingUser = await User.findOne({ where: { username: normalizedUsername } });
+            if (existingUser) {
+                throw new HttpError(409, "Questo username è già in uso.");
+            }
+
+            const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+            const newUser = await User.create({
+                username: normalizedUsername,
+                password: hashedPassword,
+                role: 'USER'
+            });
+
+            const userPayload = {
+                id: newUser.id,
+                username: newUser.username,
+                role: newUser.role,
+                createdAt: newUser.createdAt
+            };
+            const token = AuthController.issueToken(newUser);
+
+            res.status(201).json({
+                message: "Registrazione completata con successo",
+                user: userPayload,
+                token
+            });
+        } catch (err) {
+            next(err);
         }
-
-        const normalizedUsername = username.trim();
-
-        // Verifica se l'username esiste già
-        const existingUser = await User.findOne({ where: { username: normalizedUsername } });
-        if (existingUser) {
-            const error = new Error("Questo username è già in uso.");
-            error.status = 409;
-            throw error;
-        }
-
-        // Genera il salt e calcola l'hash della password
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
-        // Salva l'utente nel database
-        const newUser = await User.create({
-            username: normalizedUsername,
-            password: hashedPassword,
-            role: 'USER' // Forzato lato server per impedire Privilege Escalation
-        });
-
-        return {
-            id: newUser.id,
-            username: newUser.username,
-            role: newUser.role,
-            createdAt: newUser.createdAt
-        };
     }
 
-    // Controllo credenziali per il Login con bcrypt.compare
-    static async checkCredentials(req, res) {
-        const { username, password } = req.body;
-        if (!username || !password) return null;
+    // POST /api/auth/login
+    static async login(req, res, next) {
+        try {
+            const { username, password } = req.body;
+            if (!username || !password) {
+                throw new HttpError(400, "Inserisci username e password.");
+            }
 
-        // 1. Cerchiamo l'utente solo per username
-        const user = await User.findOne({
-            where: { username: username.trim() }
-        });
+            const user = await User.findOne({ where: { username: username.trim() } });
+            if (!user || !(await bcrypt.compare(password, user.password))) {
+                throw new HttpError(401, "Credenziali non valide. Riprova.");
+            }
 
-        if (!user) return null;
-
-        // 2. Confrontiamo la password inviata con l'hash bcrypt salvato nel DB
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return null;
-
-        return user;
+            const token = AuthController.issueToken(user);
+            res.json({
+                user: { id: user.id, username: user.username, role: user.role },
+                token
+            });
+        } catch (err) {
+            next(err);
+        }
     }
 
     // Generazione del token JWT
