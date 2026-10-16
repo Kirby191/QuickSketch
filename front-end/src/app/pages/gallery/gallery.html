@@ -1,0 +1,350 @@
+<section class="space-y-8">
+  <!-- 1. HERO BANNER FOCALIZZATO SUL GAMEPLAY (Zero duplicazione dei bottoni Login/Signup della Navbar) -->
+  <div
+    class="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/60 border border-slate-800 p-6 sm:p-8 shadow-xl overflow-hidden"
+  >
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div class="space-y-3 max-w-2xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+          <span>⚡ Gioco di Disegno & Intuizione</span>
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Esplora, Disegna in 60s e Indovina!
+        </h1>
+        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+          Osserva gli sketch creati dalla community: hai fino a <strong class="text-white">10 tentativi</strong> per indovinare la parola nascosta di ciascun disegno, oppure mettiti alla prova sulla lavagna a tempo.
+        </p>
+
+        <!-- Pillole riassuntive del flusso di gioco -->
+        <div class="pt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800">
+            1️⃣ Scegli 1 tra 3 parole
+          </span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800">
+            2️⃣ Disegna in 60 secondi
+          </span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800">
+            3️⃣ Indovina in 10 tentativi
+          </span>
+        </div>
+      </div>
+
+      <!-- Call To Action di Gioco (Non ripetono "Accedi/Registrati") -->
+      <div class="flex flex-wrap items-center gap-3 shrink-0">
+        <button
+          type="button"
+          data-testid="hero-draw-btn"
+          (click)="onStartDrawing()"
+          class="min-h-12 px-6 py-3 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer flex items-center gap-2"
+        >
+          <span>✏️</span>
+          <span>Disegna uno Sketch</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. BARRA DEI FILTRI (Categorie + Stato Sfida + Ricerca Autore) -->
+  <div class="space-y-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 sm:p-5">
+    <!-- Riga 1: Pillole Categorie -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap no-scrollbar">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1 shrink-0">
+        Categoria:
+      </span>
+      @for (cat of categories; track cat) {
+        <button
+          type="button"
+          [attr.data-testid]="'filter-category-' + cat.toLowerCase()"
+          (click)="selectCategory(cat)"
+          class="min-h-10 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer"
+          [class]="
+            selectedCategory() === cat
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+              : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+          "
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+
+    <!-- Riga 2: Filtro Stato Partita + Input cerca autore -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-800/70">
+      @if (authService.isAuthenticated()) {
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <button
+            type="button"
+            (click)="setStatusFilter('ALL')"
+            class="min-h-9 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            [class]="selectedStatus() === 'ALL' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200'"
+          >
+            Tutti ({{ sketches().length }})
+          </button>
+          <button
+            type="button"
+            (click)="setStatusFilter('PLAYABLE')"
+            class="min-h-9 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            [class]="selectedStatus() === 'PLAYABLE' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200'"
+          >
+            🎯 Giocabili
+          </button>
+          <button
+            type="button"
+            (click)="setStatusFilter('IN_PROGRESS')"
+            class="min-h-9 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            [class]="selectedStatus() === 'IN_PROGRESS' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-slate-200'"
+          >
+            ⏳ In Corso
+          </button>
+          <button
+            type="button"
+            (click)="setStatusFilter('COMPLETED')"
+            class="min-h-9 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            [class]="selectedStatus() === 'COMPLETED' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200'"
+          >
+            ✅ Conclusi
+          </button>
+          <button
+            type="button"
+            (click)="setStatusFilter('MINE')"
+            class="min-h-9 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            [class]="selectedStatus() === 'MINE' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-slate-200'"
+          >
+            🎨 I Miei Sketch
+          </button>
+        </div>
+      } @else {
+        <!-- Indicatore neutro del totale sketch senza l'ennesimo link di Login -->
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          <span>Esplorazione libera • <strong class="text-slate-200">{{ filteredSketches().length }}</strong> sketch nella raccolta</span>
+        </div>
+      }
+
+      <!-- Ricerca per autore -->
+      <div class="relative w-full md:w-64">
+        <input
+          type="text"
+          data-testid="gallery-author-search"
+          [ngModel]="authorSearch()"
+          (ngModelChange)="authorSearch.set($event)"
+          placeholder="🔍 Filtra per autore..."
+          class="w-full min-h-10 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. STATO DI ERRORE RETE/SERVER -->
+  @if (errorMessage()) {
+    <div
+      data-testid="gallery-error-banner"
+      class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 flex flex-col sm:flex-row items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-3 text-sm">
+        <span class="text-xl">⚠️</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      <button
+        type="button"
+        (click)="loadSketches()"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/30 cursor-pointer shrink-0"
+      >
+        🔄 Riprova
+      </button>
+    </div>
+  }
+
+  <!-- 4. SKELETON LOADING -->
+  @if (isLoading()) {
+    <app-sketch-card-skeleton [count]="6" />
+  } @else if (filteredSketches().length === 0) {
+    <!-- 5. EMPTY STATES UNIFICATI (Senza bottoni "Accedi/Registrati" duplicati) -->
+    @if (hasActiveFilters()) {
+      <app-empty-state
+        icon="🔍"
+        title="Nessuno sketch corrisponde ai filtri selezionati"
+        description="Non abbiamo trovato disegni per questa combinazione di filtri. Prova a cambiare categoria o mostra nuovamente tutti gli sketch della galleria."
+        actionLabel="🔄 Mostra tutti gli Sketch"
+        secondaryActionLabel="✏️ Crea uno Sketch"
+        (actionClicked)="resetAllFilters()"
+        (secondaryActionClicked)="onStartDrawing()"
+      />
+    } @else {
+      <app-empty-state
+        icon="🎨"
+        title="La galleria attende il suo primo capolavoro!"
+        description="Non ci sono ancora sketch pubblicati. Scegli una delle 3 parole casuali, disegnala in 60 secondi e lancia la prima sfida alla community!"
+        actionLabel="✏️ Inaugura la Galleria con uno Sketch"
+        (actionClicked)="onStartDrawing()"
+      />
+    }
+  } @else {
+    <!-- 6. GRIGLIA RESPONSIVE DELLE CARD DEGLI SKETCH -->
+    <div
+      data-testid="sketch-cards-grid"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      @for (sketch of filteredSketches(); track sketch.id) {
+        <article
+          [attr.data-testid]="'sketch-card-' + sketch.id"
+          (click)="onOpenSketch(sketch)"
+          class="group rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/60 overflow-hidden shadow-lg hover:shadow-indigo-500/10 transition-all duration-200 flex flex-col cursor-pointer"
+        >
+          <!-- Header Card: Categoria + Badge Stato + Pulsante Elimina (Autore/Admin) -->
+          <div class="px-5 py-3.5 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-slate-900/60">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/20">
+              {{ sketch.category }}
+            </span>
+
+            <div class="flex items-center gap-2">
+              @if (sketch.userContext; as ctx) {
+                @if (ctx.isAuthor) {
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    🎨 Tuo Disegno
+                  </span>
+                } @else if (ctx.status === 'WON') {
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    🏆 Indovinato
+                  </span>
+                } @else if (ctx.status === 'LOST') {
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    ❌ 10/10 Esauriti
+                  </span>
+                } @else if (ctx.status === 'IN_PROGRESS') {
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    ⏳ {{ ctx.remainingAttempts }} tentativi rimasti
+                  </span>
+                }
+              }
+
+              <!-- Bottone Elimina (visibile solo all'autore dello sketch o a un ADMIN) -->
+              @if (sketch.userContext?.isAuthor || authService.isAdmin()) {
+                <button
+                  type="button"
+                  [attr.data-testid]="'delete-sketch-btn-' + sketch.id"
+                  (click)="confirmDelete(sketch, $event)"
+                  title="Elimina questo sketch"
+                  class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                >
+                  🗑️
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Area Immagine del Disegno (Sfondo chiaro per far risaltare i tratti della Canvas) -->
+          <div class="relative aspect-4/3 w-full bg-white flex items-center justify-center overflow-hidden">
+            <img
+              [src]="sketch.imageData"
+              [alt]="'Sketch categoria ' + sketch.category + ' disegnato da ' + sketch.author.username"
+              loading="lazy"
+              class="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-300"
+            />
+            <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur-xs text-[11px] font-semibold text-slate-200">
+              ⏱️ {{ sketch.drawingTime }}s
+            </div>
+          </div>
+
+          <!-- Corpo Card: Parola Segreta / Svelata + Metadati Autore + Bottone Azione -->
+          <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+            <!-- Visualizzazione Parola (Svelata se autore o partita finita, altrimenti caselle coperte) -->
+            <div class="text-center space-y-1.5">
+              @if (sketch.word) {
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                  Parola Segreta:
+                </span>
+                <div
+                  [attr.data-testid]="'sketch-revealed-word-' + sketch.id"
+                  class="inline-block px-3.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-extrabold tracking-widest uppercase text-sm"
+                >
+                  {{ sketch.word }}
+                </div>
+              } @else {
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                  Parola da {{ sketch.wordLength }} lettere:
+                </span>
+                <div class="flex items-center justify-center gap-1 flex-wrap">
+                  @for (slot of getWordSlots(sketch.wordLength); track slot) {
+                    <span
+                      class="w-5 h-7 rounded bg-slate-950 border border-slate-800 inline-flex items-center justify-center text-xs font-bold text-slate-500"
+                    >
+                      _
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Statistiche sintetiche e Autore -->
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+              <span>
+                Di <strong class="text-slate-200">{{ sketch.author.username }}</strong>
+              </span>
+              <span title="Utenti che hanno indovinato questo sketch">
+                💡 {{ sketch.stats.solvedCount }}/{{ sketch.stats.totalPlayers }} indovinati
+              </span>
+            </div>
+
+            <!-- Pulsante Call-To-Action Contestuale -->
+            <button
+              type="button"
+              [attr.data-testid]="'sketch-action-btn-' + sketch.id"
+              class="w-full min-h-11 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer"
+              [class]="
+                sketch.userContext?.canPlay
+                  ? 'bg-indigo-600 group-hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20'
+                  : 'bg-slate-800 group-hover:bg-slate-700 text-slate-200'
+              "
+            >
+              @if (!authService.isAuthenticated()) {
+                <span>🔍 Guarda & Prova a Indovinare</span>
+              } @else if (sketch.userContext?.isAuthor) {
+                <span>👁️ Vedi Dettagli del Tuo Sketch</span>
+              } @else if (sketch.userContext?.status === 'IN_PROGRESS') {
+                <span>🎯 Continua Sfida ({{ sketch.userContext?.remainingAttempts }} rimasti)</span>
+              } @else if (sketch.userContext?.canPlay) {
+                <span>🎯 Indovina Ora (10 tentativi)</span>
+              } @else {
+                <span>👁️ Rivedi Risultato Partita</span>
+              }
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<!-- MODALE DI CONFERMA ELIMINAZIONE SKETCH -->
+<app-modal
+  [isOpen]="!!sketchToDelete()"
+  title="Conferma Eliminazione Sketch"
+  (closed)="cancelDelete()"
+>
+  <div class="space-y-5">
+    <p class="text-sm text-slate-300 leading-relaxed">
+      Sei sicuro di voler eliminare definitivamente lo sketch della categoria
+      <strong class="text-white">{{ sketchToDelete()?.category }}</strong>? L'operazione rimuoverà anche i tentativi associati.
+    </p>
+
+    <div class="flex items-center justify-end gap-3">
+      <button
+        type="button"
+        (click)="cancelDelete()"
+        class="min-h-11 px-4 py-2 rounded-xl text-sm font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 cursor-pointer"
+      >
+        Annulla
+      </button>
+      <button
+        type="button"
+        data-testid="confirm-delete-sketch-btn"
+        [disabled]="isDeleting()"
+        (click)="executeDelete()"
+        class="min-h-11 px-5 py-2 rounded-xl text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 disabled:opacity-50 cursor-pointer"
+      >
+        {{ isDeleting() ? 'Eliminazione...' : 'Sì, Elimina Sketch' }}
+      </button>
+    </div>
+  </div>
+</app-modal>

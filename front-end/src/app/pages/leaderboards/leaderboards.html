@@ -1,0 +1,331 @@
+<section class="space-y-8">
+  <!-- 1. HEADER E SELETTORE TAB DELLE DUE CLASSIFICHE -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8">
+    <div class="space-y-2 max-w-xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
+        <span>🏆 Hall of Fame Globale</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+        Classifiche QuickSketch
+      </h1>
+      <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
+        Scopri chi ha l'intuito più rapido nell'indovinare le parole segrete e chi realizza gli sketch più chiari ed efficaci della community.
+      </p>
+    </div>
+
+    <!-- Switcher tra Migliori Giocatori e Migliori Disegnatori -->
+    <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-950 rounded-2xl border border-slate-800 w-full md:w-auto shrink-0">
+      <button
+        type="button"
+        data-testid="leaderboard-tab-players"
+        (click)="switchTab('PLAYERS')"
+        class="min-h-11 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+        [class]="
+          activeTab() === 'PLAYERS'
+            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25'
+            : 'text-slate-400 hover:text-white'
+        "
+      >
+        <span>🎯</span>
+        <span>Migliori Giocatori</span>
+      </button>
+
+      <button
+        type="button"
+        data-testid="leaderboard-tab-artists"
+        (click)="switchTab('ARTISTS')"
+        class="min-h-11 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+        [class]="
+          activeTab() === 'ARTISTS'
+            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25'
+            : 'text-slate-400 hover:text-white'
+        "
+      >
+        <span>🎨</span>
+        <span>Migliori Disegnatori</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. BANNER ERRORE DI RETE -->
+  @if (errorMessage()) {
+    <div
+      data-testid="leaderboard-error-banner"
+      class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 flex items-center justify-between gap-4"
+    >
+      <span class="text-sm">⚠️ {{ errorMessage() }}</span>
+      <button
+        type="button"
+        (click)="loadLeaderboards()"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 cursor-pointer"
+      >
+        🔄 Riprova
+      </button>
+    </div>
+  }
+
+  <!-- 3. SKELETON LOADING DEDICATO ALLE CLASSIFICHE -->
+  @if (isLoading()) {
+    <div data-testid="leaderboard-skeleton" class="space-y-6 animate-pulse" aria-busy="true">
+      <!-- Skeleton Podio Top 3 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="h-40 rounded-2xl bg-slate-900 border border-slate-800 p-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-slate-800"></div>
+              <div class="w-20 h-5 rounded-full bg-slate-800"></div>
+            </div>
+            <div class="w-36 h-6 rounded bg-slate-800"></div>
+            <div class="w-full h-4 rounded bg-slate-800/70"></div>
+          </div>
+        }
+      </div>
+
+      <!-- Skeleton Tabella Posizioni -->
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden divide-y divide-slate-800">
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <div class="p-4 sm:px-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-8 h-8 rounded-lg bg-slate-800"></div>
+              <div class="w-32 h-5 rounded bg-slate-800"></div>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="w-16 h-5 rounded bg-slate-800"></div>
+              <div class="w-16 h-5 rounded bg-slate-800 hidden sm:block"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (activeTab() === 'PLAYERS') {
+    <!-- ========================================== -->
+    <!-- VISTA 1: CLASSIFICA MIGLIORI GIOCATORI     -->
+    <!-- ========================================== -->
+    @if (bestPlayers().length === 0) {
+      <app-empty-state
+        icon="🎯"
+        title="La classifica dei Migliori Giocatori è ancora vuota!"
+        description="Nessun utente ha ancora provato a indovinare uno sketch. Vai alla galleria, scegli un disegno e indovina la parola segreta in meno tentativi possibili per conquistare il 1° posto!"
+        actionLabel="🖼️ Esplora gli Sketch e Indovina"
+        (actionClicked)="goToGallery()"
+      />
+    } @else {
+      <!-- Podio Top 3 Giocatori -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        @for (player of topThreePlayers(); track player.userId) {
+          <div
+            [attr.data-testid]="'podium-player-' + player.rank"
+            class="relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4"
+            [class]="
+              player.rank === 1
+                ? 'bg-gradient-to-br from-amber-500/15 via-slate-900 to-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5'
+                : player.rank === 2
+                  ? 'bg-gradient-to-br from-slate-400/10 via-slate-900 to-slate-900 border-slate-700'
+                  : 'bg-gradient-to-br from-amber-700/10 via-slate-900 to-slate-900 border-amber-800/40'
+            "
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-3xl">{{ getMedalEmoji(player.rank) }}</span>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                {{ player.wordsGuessedCount }} parole indovinate
+              </span>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-extrabold text-white truncate">
+                  {{ player.username }}
+                </h3>
+                @if (isCurrentUser(player.userId)) {
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
+                    Tu
+                  </span>
+                }
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Media di <strong class="text-slate-200">{{ player.avgAttemptsPerWin }}</strong> tentativi per vittoria • {{ player.totalAttemptsUsed }} tentativi totali
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Tabella Completa Migliori Giocatori -->
+      <div
+        data-testid="leaderboard-players-table"
+        class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 bg-slate-950/60 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-3.5 px-4 sm:px-6">Pos.</th>
+                <th class="py-3.5 px-4 sm:px-6">Giocatore</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center">Parole Indovinate</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center hidden sm:table-cell">Media Tentativi / Vittoria</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center hidden md:table-cell">Non Indovinate</th>
+                <th class="py-3.5 px-4 sm:px-6 text-right">Tentativi Usati</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/70 text-sm">
+              @for (player of bestPlayers(); track player.userId) {
+                <tr
+                  [attr.data-testid]="'player-row-' + player.userId"
+                  class="transition-colors"
+                  [class]="
+                    isCurrentUser(player.userId)
+                      ? 'bg-indigo-600/10 hover:bg-indigo-600/15'
+                      : 'hover:bg-slate-800/40'
+                  "
+                >
+                  <td class="py-4 px-4 sm:px-6 font-extrabold text-white whitespace-nowrap">
+                    {{ getMedalEmoji(player.rank) }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 font-bold text-white whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span>{{ player.username }}</span>
+                      @if (isCurrentUser(player.userId)) {
+                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
+                          Tu
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center">
+                    <span class="px-3 py-1 rounded-lg font-extrabold text-emerald-300 bg-emerald-500/15 border border-emerald-500/20">
+                      {{ player.wordsGuessedCount }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center text-slate-300 hidden sm:table-cell">
+                    {{ player.wordsGuessedCount > 0 ? player.avgAttemptsPerWin + ' tentativi' : '—' }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center text-slate-400 hidden md:table-cell">
+                    {{ player.wordsNotGuessedCount }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-right font-semibold text-slate-300">
+                    {{ player.totalAttemptsUsed }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  } @else {
+    <!-- ========================================== -->
+    <!-- VISTA 2: CLASSIFICA MIGLIORI DISEGNATORI   -->
+    <!-- ========================================== -->
+    @if (bestArtists().length === 0) {
+      <app-empty-state
+        icon="🎨"
+        title="La classifica dei Migliori Disegnatori è ancora vuota!"
+        description="Nessun artista ha ancora pubblicato uno sketch. Impugna il pennello digitale, disegna una parola in 60 secondi e scala la classifica man mano che gli altri giocatori indovinano le tue opere!"
+        actionLabel="✏️ Disegna il Tuo Primo Sketch"
+        (actionClicked)="goToDraw()"
+      />
+    } @else {
+      <!-- Podio Top 3 Disegnatori -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        @for (artist of topThreeArtists(); track artist.userId) {
+          <div
+            [attr.data-testid]="'podium-artist-' + artist.rank"
+            class="relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4"
+            [class]="
+              artist.rank === 1
+                ? 'bg-gradient-to-br from-amber-500/15 via-slate-900 to-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5'
+                : artist.rank === 2
+                  ? 'bg-gradient-to-br from-slate-400/10 via-slate-900 to-slate-900 border-slate-700'
+                  : 'bg-gradient-to-br from-amber-700/10 via-slate-900 to-slate-900 border-amber-800/40'
+            "
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-3xl">{{ getMedalEmoji(artist.rank) }}</span>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                {{ artist.totalWinsReceived }} volte indovinato
+              </span>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-extrabold text-white truncate">
+                  {{ artist.username }}
+                </h3>
+                @if (isCurrentUser(artist.userId)) {
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
+                    Tu
+                  </span>
+                }
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                <strong class="text-slate-200">{{ artist.sketchesCreatedCount }}</strong> sketch creati • Chiarezza: <strong class="text-emerald-400">{{ artist.successRate }}%</strong>
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Tabella Completa Migliori Disegnatori -->
+      <div
+        data-testid="leaderboard-artists-table"
+        class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 bg-slate-950/60 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-3.5 px-4 sm:px-6">Pos.</th>
+                <th class="py-3.5 px-4 sm:px-6">Disegnatore</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center">Indovinati dagli Altri</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center">Sketch Prodotti</th>
+                <th class="py-3.5 px-4 sm:px-6 text-center hidden sm:table-cell">Sketch Risolti</th>
+                <th class="py-3.5 px-4 sm:px-6 text-right">Tasso di Chiarezza</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/70 text-sm">
+              @for (artist of bestArtists(); track artist.userId) {
+                <tr
+                  [attr.data-testid]="'artist-row-' + artist.userId"
+                  class="transition-colors"
+                  [class]="
+                    isCurrentUser(artist.userId)
+                      ? 'bg-indigo-600/10 hover:bg-indigo-600/15'
+                      : 'hover:bg-slate-800/40'
+                  "
+                >
+                  <td class="py-4 px-4 sm:px-6 font-extrabold text-white whitespace-nowrap">
+                    {{ getMedalEmoji(artist.rank) }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 font-bold text-white whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span>{{ artist.username }}</span>
+                      @if (isCurrentUser(artist.userId)) {
+                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
+                          Tu
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center">
+                    <span class="px-3 py-1 rounded-lg font-extrabold text-indigo-300 bg-indigo-500/15 border border-indigo-500/20">
+                      {{ artist.totalWinsReceived }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center font-semibold text-slate-200">
+                    {{ artist.sketchesCreatedCount }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center text-slate-400 hidden sm:table-cell">
+                    {{ artist.solvedSketchesCount }} / {{ artist.sketchesCreatedCount }}
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-right font-bold text-emerald-400">
+                    {{ artist.successRate }}%
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+</section>
