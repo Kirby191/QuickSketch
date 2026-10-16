@@ -242,8 +242,38 @@
           }
         </div>
 
-        <!-- Gomma, Annulla Tratto (Undo) e Svuota Tela (Clear) -->
-        <div class="flex items-center gap-2">
+<!-- Strumenti: Pennello, Secchiello (Flood Fill), Gomma, Annulla (Undo), Ripristina (Redo), Pulisci -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            data-testid="canvas-pen-btn"
+            (click)="activatePen()"
+            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer"
+            [class]="
+              isPen()
+                ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/20'
+                : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+            "
+          >
+            ✏️ Pennello
+          </button>
+
+          <button
+            type="button"
+            data-testid="canvas-fill-btn"
+            (click)="toggleBucketTool()"
+            title="Attiva il Secchiello e clicca dentro una figura chiusa (o sullo sfondo) per riempirla"
+            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1.5"
+            [class]="
+              isBucket()
+                ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/20'
+                : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+            "
+          >
+            <span>🪣</span>
+            <span>Riempi</span>
+          </button>
+
           <button
             type="button"
             data-testid="canvas-eraser-btn"
@@ -251,7 +281,7 @@
             class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer"
             [class]="
               isEraser()
-                ? 'bg-indigo-600 text-white border-indigo-400'
+                ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/20'
                 : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
             "
           >
@@ -263,9 +293,21 @@
             data-testid="canvas-undo-btn"
             [disabled]="strokesCount() === 0"
             (click)="undoLastStroke()"
-            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            title="Annulla ultima azione (Ctrl+Z)"
+            class="min-h-10 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             ↩️ Annulla
+          </button>
+
+          <button
+            type="button"
+            data-testid="canvas-redo-btn"
+            [disabled]="redoCount() === 0"
+            (click)="redoLastStroke()"
+            title="Ripristina azione annullata (Ctrl+Y)"
+            class="min-h-10 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            ↪️ Ripristina
           </button>
 
           <button
@@ -280,12 +322,15 @@
         </div>
       </div>
 
-      <!-- Area Lavagna HTML5 Canvas con Hint su Tela Vuota -->
+      <!-- Area Lavagna HTML5 Canvas con Cursore Dinamico (Pennello / Secchiello / Gomma) -->
       <div class="canvas-wrapper">
         <canvas
           #canvasEl
           data-testid="drawing-canvas"
-          (pointerdown)="isDrawing.set(true)"
+          [class.tool-pen]="isPen()"
+          [class.tool-bucket]="isBucket()"
+          [class.tool-eraser]="isEraser()"
+          (pointerdown)="onCanvasPointerDown($event)"
         ></canvas>
 
         @if (showCanvasHint()) {
@@ -293,9 +338,13 @@
             data-testid="canvas-empty-hint"
             class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-slate-400/70 select-none p-4 text-center"
           >
-            <span class="text-3xl mb-1">✍️</span>
+            <span class="text-3xl mb-1">{{ isBucket() ? '🪣' : '✍️' }}</span>
             <p class="text-xs sm:text-sm font-semibold">
-              Inizia a disegnare qui usando il mouse o il tocco del dito
+              {{
+                isBucket()
+                  ? 'Tocca un punto della tela per riempirlo col colore selezionato'
+                  : 'Inizia a disegnare qui usando il mouse o il tocco del dito'
+              }}
             </p>
           </div>
         }
@@ -304,10 +353,19 @@
       <!-- Barra di Stato Inferiore della Lavagna -->
       <div class="flex items-center justify-between text-xs text-slate-400 px-2">
         <span>
-          Tratti disegnati: <strong data-testid="strokes-counter" class="text-slate-200">{{ strokesCount() }}</strong>
+          Azioni effettuate: <strong data-testid="strokes-counter" class="text-slate-200">{{ strokesCount() }}</strong>
         </span>
         <span>
-          Strumento attivo: <strong class="text-slate-200">{{ isEraser() ? 'Gomma da cancellare' : 'Pennello (' + activeColor() + ')' }}</strong>
+          Strumento attivo:
+          <strong class="text-slate-200">
+            @if (isBucket()) {
+              🪣 Secchiello Riempi ({{ activeColor() }}) — Clicca dentro una forma per colorarla
+            } @else if (isEraser()) {
+              🧼 Gomma da cancellare
+            } @else {
+              ✏️ Pennello ({{ activeColor() }})
+            }
+          </strong>
         </span>
       </div>
     </div>

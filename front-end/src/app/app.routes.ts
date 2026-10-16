@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { pendingDrawingGuard } from './guards/pending-drawing/pending-drawing.guard';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,7 @@ export const routes: Routes = [
   {
     path: 'draw',
     canActivate: [authGuard],
+    canDeactivate: [pendingDrawingGuard],
     loadComponent: () =>
       import('./pages/draw/draw').then((m) => m.DrawComponent),
     title: 'QuickSketch — Disegna in 60s',

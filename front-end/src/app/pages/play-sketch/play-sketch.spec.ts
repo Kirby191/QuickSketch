@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PlaySketch } from './play-sketch';
+import { PlaySketchComponent } from './play-sketch';
 
-describe('PlaySketch', () => {
-  let component: PlaySketch;
-  let fixture: ComponentFixture<PlaySketch>;
+describe('PlaySketchComponent', () => {
+  let component: PlaySketchComponent;
+  let fixture: ComponentFixture<PlaySketchComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlaySketch],
+      imports: [PlaySketchComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PlaySketch);
+    fixture = TestBed.createComponent(PlaySketchComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

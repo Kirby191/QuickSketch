@@ -12,10 +12,23 @@
     display: block;
     width: 100%;
     height: 100%;
-    /* Impedisce allo smartphone di scrollare la pagina mentre il dito disegna */
+    /* Impedisce allo smartphone di scrollare la pagina mentre il dito disegna o riempie */
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
-    cursor: crosshair;
+
+    &.tool-pen {
+      cursor: crosshair;
+    }
+
+    /* Cursore SVG a forma di Secchiello di vernice (con hotspot sulla punta della goccia 20,22) */
+    &.tool-bucket {
+      cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z' fill='%236366f1'/><path d='m5 2 5 5'/><path d='M2 13h15'/><path d='M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z' fill='%23ec4899' stroke='%230f172a'/></svg>") 20 22, pointer;
+    }
+
+    /* Cursore SVG circolare per la Gomma */
+    &.tool-eraser {
+      cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='9' fill='white' stroke='%230f172a' stroke-width='2'/></svg>") 12 12, crosshair;
+    }
   }
 }

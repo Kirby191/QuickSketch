@@ -7,8 +7,15 @@
     <router-outlet />
   </main>
 
-  <!-- Modale condiviso di Login / Registrazione-->
+  <!-- Footer Istituzionale -->
+  <footer class="w-full border-t border-slate-900 bg-slate-950/80 py-5 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>🎨 <strong class="text-slate-400">QuickSketch</strong> — Piattaforma Web di Disegno & Intuizione</span>
+      <span>Corso di Tecnologie Web • Università degli Studi di Napoli Federico II</span>
+    </div>
+  </footer>
+
+  <!-- Modale condiviso di Login / Registrazione e Contenitore Notifiche Toast -->
   <app-auth-modal />
-  <!-- Contenitore dei toast -->
   <app-toast-container />
 </div>

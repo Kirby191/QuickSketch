@@ -57,6 +57,15 @@
             <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
               ⏱️ Realizzato in <strong class="text-slate-200">{{ s.drawingTime }}s</strong>
             </span>
+            <a
+            [href]="s.imageData"
+            [download]="'quicksketch-' + s.id + '-' + s.category.toLowerCase() + '.png'"
+            data-testid="download-sketch-btn"
+            title="Scarica questo disegno in formato PNG"
+            class="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 transition-colors"
+            >
+            💾 Scarica PNG
+            </a>
             <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
               💡 <strong class="text-emerald-400">{{ s.stats.solvedCount }}</strong>/{{ s.stats.totalPlayers }} risolti
             </span>
