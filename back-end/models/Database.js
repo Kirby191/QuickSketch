@@ -71,7 +71,7 @@ Sketch.belongsTo(Word, {
 // 4. Sincronizzazione e popolamento
 export async function initDatabase() {
     try {
-        await database.sync({ alter: true });
+        await database.sync();
         console.log("Database synchronized.");
         await seedDatabase();
     } catch (err) {

@@ -24,6 +24,14 @@ export const routes: Routes = [
     title: 'QuickSketch — Disegna in 60s',
   },
   {
+    path: 'sketches/:id',
+    loadComponent: () =>
+      import('./pages/play-sketch/play-sketch').then(
+        (m) => m.PlaySketchComponent
+      ),
+    title: 'QuickSketch — Indovina lo Sketch',
+  },
+  {
     path: 'profile',
     canActivate: [authGuard],
     loadComponent: () =>
