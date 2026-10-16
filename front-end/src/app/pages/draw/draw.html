@@ -1,1 +1,308 @@
-<p>draw works!</p>
+<section class="max-w-5xl mx-auto space-y-6">
+  <!-- Banner Errori -->
+  @if (errorMessage()) {
+    <div
+      data-testid="draw-error-banner"
+      class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 flex items-center justify-between gap-4"
+    >
+      <span class="text-sm">⚠️ {{ errorMessage() }}</span>
+      <button
+        type="button"
+        (click)="fetchRandomWords()"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 cursor-pointer shrink-0"
+      >
+        🔄 Estrai Nuove Parole
+      </button>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- FASE 1: SCELTA DI 1 PAROLA TRA LE 3 ESTRATTE CASUALMENTE   -->
+  <!-- ========================================================= -->
+  @if (phase() === 'SELECT_WORD') {
+    <div class="rounded-3xl bg-slate-900/70 border border-slate-800 p-6 sm:p-10 text-center space-y-8">
+      <div class="space-y-2 max-w-xl mx-auto">
+        <span class="inline-block px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+          Passo 1 di 2 • Scelta del Soggetto
+        </span>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Cosa vuoi disegnare?
+        </h1>
+        <p class="text-sm sm:text-base text-slate-400">
+          Scegli una delle <strong class="text-white">3 parole casuali</strong> qui sotto. Appena cliccherai sulla parola partirà il timer di <strong class="text-indigo-400">60 secondi</strong>!
+        </p>
+      </div>
+
+      <!-- Skeleton Loading durante l'estrazione delle 3 parole -->
+      @if (isLoadingWords()) {
+        <div
+          data-testid="words-skeleton"
+          class="grid grid-cols-1 md:grid-cols-3 gap-5 animate-pulse"
+        >
+          @for (item of [1, 2, 3]; track item) {
+            <div class="h-48 rounded-2xl bg-slate-950 border border-slate-800 p-6 flex flex-col items-center justify-between">
+              <div class="w-20 h-5 rounded-full bg-slate-800"></div>
+              <div class="w-36 h-8 rounded-lg bg-slate-800"></div>
+              <div class="w-full h-11 rounded-xl bg-slate-800"></div>
+            </div>
+          }
+        </div>
+      } @else if (wordOptions().length === 0) {
+        <app-empty-state
+          icon="📚"
+          title="Nessuna parola disponibile nel dizionario"
+          description="Non siamo riusciti a caricare le parole per il disegno. Riprova tra un istante."
+          actionLabel="🔄 Riprova Estrazione"
+          (actionClicked)="fetchRandomWords()"
+        />
+      } @else {
+        <!-- Griglia delle 3 Parole Casuali -->
+        <div
+          data-testid="word-choices-grid"
+          class="grid grid-cols-1 md:grid-cols-3 gap-5"
+        >
+          @for (word of wordOptions(); track word.id) {
+            <div
+              [attr.data-testid]="'word-choice-card-' + word.text"
+              (click)="chooseWordAndStart(word)"
+              class="group rounded-2xl bg-slate-950 border border-slate-800 hover:border-indigo-500 p-6 flex flex-col items-center justify-between gap-6 shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer"
+            >
+              <div class="w-full flex items-center justify-between text-xs font-bold">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800">
+                  {{ word.category }}
+                </span>
+                <span
+                  class="px-2.5 py-1 rounded-lg border"
+                  [class]="getDifficultyBadge(word.difficulty).classes"
+                >
+                  {{ getDifficultyBadge(word.difficulty).label }}
+                </span>
+              </div>
+
+              <div class="py-2">
+                <span class="text-2xl sm:text-3xl font-extrabold uppercase tracking-wider text-white group-hover:text-indigo-400 transition-colors">
+                  {{ word.text }}
+                </span>
+                <span class="block text-xs text-slate-500 mt-1">
+                  {{ word.text.length }} lettere
+                </span>
+              </div>
+
+              <button
+                type="button"
+                class="w-full min-h-11 py-2.5 px-4 rounded-xl font-bold text-sm text-white bg-indigo-600 group-hover:bg-indigo-500 transition-colors cursor-pointer"
+              >
+                ✏️ Disegna "{{ word.text }}"
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Pulsante per estrarre altre 3 parole -->
+        <div class="pt-2">
+          <button
+            type="button"
+            data-testid="refresh-words-btn"
+            (click)="fetchRandomWords()"
+            class="min-h-11 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+          >
+            🎲 Estrai altre 3 parole
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- ========================================================= -->
+    <!-- FASE 2 & 3: TAVOLO DA DISEGNO CON TIMER DI 60 SECONDI      -->
+    <!-- ========================================================= -->
+    <div class="space-y-4">
+      <!-- Barra Superiore: Parola Scelta + Countdown 60s + Bottone Pubblica -->
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center justify-between sm:justify-start gap-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Parola da disegnare ({{ selectedWord()?.category }}):
+            </span>
+            <span
+              data-testid="active-drawing-word"
+              class="text-xl sm:text-2xl font-extrabold uppercase tracking-widest text-indigo-400"
+            >
+              {{ selectedWord()?.text }}
+            </span>
+          </div>
+
+          <!-- Badge Timer Mobile/Desktop -->
+          <div
+            data-testid="drawing-timer"
+            class="px-4 py-2 rounded-xl border font-extrabold text-lg tabular-nums flex items-center gap-2"
+            [class]="
+              isTimeCritical()
+                ? 'bg-rose-500/20 border-rose-500 text-rose-300 animate-pulse'
+                : 'bg-slate-950 border-slate-800 text-white'
+            "
+          >
+            <span>⏱️</span>
+            <span>{{ timeLeft() }}s</span>
+          </div>
+        </div>
+
+        <!-- Azioni Principali (Cambia Parola / Pubblica Sketch) -->
+        <div class="flex items-center gap-2.5">
+          <button
+            type="button"
+            data-testid="change-word-btn"
+            (click)="fetchRandomWords()"
+            [disabled]="phase() === 'SUBMITTING'"
+            class="min-h-11 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 cursor-pointer"
+          >
+            Cambia Parola
+          </button>
+
+          <button
+            type="button"
+            data-testid="publish-sketch-btn"
+            [disabled]="!canPublish()"
+            (click)="publishSketch()"
+            class="flex-1 sm:flex-none min-h-11 px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+          >
+            @if (phase() === 'SUBMITTING') {
+              <span>Salvataggio...</span>
+            } @else {
+              <span>🚀 Pubblica Sketch</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra di Progresso Visiva dei 60 Secondi -->
+      <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+        <div
+          class="h-full transition-all duration-1000 ease-linear"
+          [class]="isTimeCritical() ? 'bg-rose-500' : 'bg-indigo-500'"
+          [style.width.%]="timeProgressPercent()"
+        ></div>
+      </div>
+
+      <!-- Barra degli Strumenti della Lavagna (Colori + Color Picker, Spessore, Gomma, Annulla, Pulisci) -->
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 p-3 sm:p-4 flex flex-wrap items-center justify-between gap-4">
+        <!-- Palette Colori Rapidi + Input Color Picker HTML5 -->
+        <div class="flex items-center gap-2 flex-wrap">
+          @for (c of colors; track c.hex) {
+            <button
+              type="button"
+              [title]="c.name"
+              [attr.aria-label]="'Colore ' + c.name"
+              (click)="selectColor(c.hex)"
+              class="w-9 h-9 rounded-full border-2 transition-transform cursor-pointer"
+              [style.backgroundColor]="c.hex"
+              [class]="
+                !isEraser() && activeColor() === c.hex
+                  ? 'scale-115 border-white ring-2 ring-indigo-500'
+                  : 'border-slate-700 hover:scale-105'
+              "
+            ></button>
+          }
+
+          <!-- Selettore Colore Personalizzato (<input type="color">) -->
+          <label
+            title="Scegli un colore personalizzato"
+            class="w-9 h-9 rounded-full border-2 border-dashed border-slate-600 hover:border-indigo-400 flex items-center justify-center cursor-pointer overflow-hidden bg-slate-950 text-xs"
+          >
+            <input
+              type="color"
+              data-testid="custom-color-picker"
+              [value]="activeColor()"
+              (input)="selectColor($any($event.target).value)"
+              class="sr-only"
+            />
+            <span>🎨</span>
+          </label>
+        </div>
+
+        <!-- Selettore Spessore Tratto -->
+        <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          @for (b of brushSizes; track b.label; let idx = $index) {
+            <button
+              type="button"
+              (click)="selectBrushSize(idx)"
+              class="min-h-9 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+              [class]="
+                activeBrushIndex() === idx
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-400 hover:text-white'
+              "
+            >
+              <span
+                class="rounded-full bg-current inline-block"
+                [style.width.px]="b.dotSize"
+                [style.height.px]="b.dotSize"
+              ></span>
+              <span class="hidden sm:inline">{{ b.label }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Gomma, Annulla Tratto (Undo) e Svuota Tela (Clear) -->
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            data-testid="canvas-eraser-btn"
+            (click)="toggleEraser()"
+            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer"
+            [class]="
+              isEraser()
+                ? 'bg-indigo-600 text-white border-indigo-400'
+                : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+            "
+          >
+            🧼 Gomma
+          </button>
+
+          <button
+            type="button"
+            data-testid="canvas-undo-btn"
+            [disabled]="strokesCount() === 0"
+            (click)="undoLastStroke()"
+            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            ↩️ Annulla
+          </button>
+
+          <button
+            type="button"
+            data-testid="canvas-clear-btn"
+            [disabled]="strokesCount() === 0"
+            (click)="clearCanvas()"
+            class="min-h-10 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            🗑️ Pulisci
+          </button>
+        </div>
+      </div>
+
+      <!-- Area Lavagna HTML5 Canvas con Hint su Tela Vuota -->
+      <div class="canvas-wrapper">
+        <canvas #canvasEl data-testid="drawing-canvas"></canvas>
+
+        @if (strokesCount() === 0) {
+          <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-slate-400/70 select-none p-4 text-center">
+            <span class="text-3xl mb-1">✍️</span>
+            <p class="text-xs sm:text-sm font-semibold">
+              Inizia a disegnare qui usando il mouse o il tocco del dito
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Barra di Stato Inferiore della Lavagna -->
+      <div class="flex items-center justify-between text-xs text-slate-400 px-2">
+        <span>
+          Tratti disegnati: <strong data-testid="strokes-counter" class="text-slate-200">{{ strokesCount() }}</strong>
+        </span>
+        <span>
+          Strumento attivo: <strong class="text-slate-200">{{ isEraser() ? 'Gomma da cancellare' : 'Pennello (' + activeColor() + ')' }}</strong>
+        </span>
+      </div>
+    </div>
+  }
+</section>

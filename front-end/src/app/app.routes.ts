@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,20 @@ export const routes: Routes = [
         (m) => m.LeaderboardsComponent
       ),
     title: 'QuickSketch — Classifiche',
+  },
+  {
+    path: 'draw',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/draw/draw').then((m) => m.DrawComponent),
+    title: 'QuickSketch — Disegna in 60s',
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/profile/profile').then((m) => m.ProfileComponent),
+    title: 'QuickSketch — Le Mie Statistiche',
   },
   {
     path: '**',

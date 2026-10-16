@@ -1,0 +1,406 @@
+<section class="space-y-8">
+  <!-- 1. HEADER PROFILO UTENTE -->
+  <div class="rounded-3xl bg-slate-900/70 border border-slate-800 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div class="flex items-center gap-4">
+      <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-3xl font-extrabold text-indigo-300 shrink-0">
+        {{ authService.currentUser()?.username?.slice(0, 1)?.toUpperCase() || '👤' }}
+      </div>
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1
+            data-testid="profile-username"
+            class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight"
+          >
+            {{ authService.currentUser()?.username }}
+          </h1>
+          @if (authService.isAdmin()) {
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              Admin
+            </span>
+          }
+        </div>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          Riepilogo personale delle tue performance come Giocatore e come Disegnatore
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <a
+        routerLink="/draw"
+        data-testid="profile-draw-btn"
+        class="min-h-11 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-indigo-600 hover:bg-indigo-500 transition-colors inline-flex items-center gap-2"
+      >
+        <span>✏️</span>
+        <span>Nuovo Sketch</span>
+      </a>
+      <button
+        type="button"
+        (click)="loadMyStats()"
+        class="min-h-11 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+      >
+        🔄 Aggiorna Dati
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. BANNER ERRORE -->
+  @if (errorMessage()) {
+    <div
+      data-testid="profile-error-banner"
+      class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 flex items-center justify-between gap-4"
+    >
+      <span class="text-sm">⚠️ {{ errorMessage() }}</span>
+      <button
+        type="button"
+        (click)="loadMyStats()"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 cursor-pointer"
+      >
+        Riprova
+      </button>
+    </div>
+  }
+
+  <!-- 3. SKELETON LOADING -->
+  @if (isLoading()) {
+    <div data-testid="profile-skeleton" class="space-y-6 animate-pulse" aria-busy="true">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (card of [1, 2, 3, 4]; track card) {
+          <div class="h-32 rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between">
+            <div class="w-24 h-4 rounded bg-slate-800"></div>
+            <div class="w-16 h-8 rounded bg-slate-800"></div>
+            <div class="w-32 h-3 rounded bg-slate-800/70"></div>
+          </div>
+        }
+      </div>
+      <div class="h-64 rounded-2xl bg-slate-900 border border-slate-800"></div>
+    </div>
+  } @else if (stats(); as s) {
+    <!-- 4. LE 4 METRICHE CHIAVE RICHIESTE DALLA TRACCIA (Card Principali) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Metrica 1: Disegni Prodotti -->
+      <div
+        data-testid="stat-card-sketches-created"
+        class="rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between gap-3"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Disegni Prodotti
+          </span>
+          <span class="text-xl">🎨</span>
+        </div>
+        <div class="text-3xl font-extrabold text-white tabular-nums">
+          {{ s.artistStats.sketchesCreatedCount }}
+        </div>
+        <p class="text-xs text-slate-400">
+          Indovinati {{ s.artistStats.successfulGuessesOnMySketches }} volte • Tempo medio: {{ s.artistStats.avgDrawingTime }}s
+        </p>
+      </div>
+
+      <!-- Metrica 2: Parole Indovinate -->
+      <div
+        data-testid="stat-card-words-guessed"
+        class="rounded-2xl bg-slate-900 border border-emerald-500/30 p-5 flex flex-col justify-between gap-3"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-300">
+            Parole Indovinate
+          </span>
+          <span class="text-xl">🏆</span>
+        </div>
+        <div class="text-3xl font-extrabold text-emerald-400 tabular-nums">
+          {{ s.playerStats.wordsGuessedCount }}
+        </div>
+        <p class="text-xs text-slate-400">
+          Tasso di vittoria: <strong class="text-slate-200">{{ s.playerStats.winRatePercentage }}%</strong>
+        </p>
+      </div>
+
+      <!-- Metrica 3: Parole Non Indovinate -->
+      <div
+        data-testid="stat-card-words-lost"
+        class="rounded-2xl bg-slate-900 border border-rose-500/30 p-5 flex flex-col justify-between gap-3"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-rose-300">
+            Parole Non Indovinate
+          </span>
+          <span class="text-xl">❌</span>
+        </div>
+        <div class="text-3xl font-extrabold text-rose-400 tabular-nums">
+          {{ s.playerStats.wordsNotGuessedCount }}
+        </div>
+        <p class="text-xs text-slate-400">
+          Partite ancora in corso: <strong class="text-amber-300">{{ s.playerStats.gamesInProgressCount }}</strong>
+        </p>
+      </div>
+
+      <!-- Metrica 4: Numero di Tentativi Utilizzati -->
+      <div
+        data-testid="stat-card-attempts-used"
+        class="rounded-2xl bg-slate-900 border border-indigo-500/30 p-5 flex flex-col justify-between gap-3"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">
+            Tentativi Utilizzati
+          </span>
+          <span class="text-xl">🎯</span>
+        </div>
+        <div class="text-3xl font-extrabold text-indigo-400 tabular-nums">
+          {{ s.playerStats.totalAttemptsUsed }}
+        </div>
+        <p class="text-xs text-slate-400">
+          Media per vittoria: <strong class="text-slate-200">{{ s.playerStats.avgAttemptsPerWin }}</strong> tentativi
+        </p>
+      </div>
+    </div>
+
+    <!-- 5. DETTAGLIO APPROFONDITO: DISEGNATORE vs CRONOLOGIA PARTITE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Pannello Rendimento Disegnatore (4 colonne) -->
+      <div class="lg:col-span-4 rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-5">
+        <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+          <span>🖌️</span>
+          <span>Rendimento come Disegnatore</span>
+        </h2>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800/80">
+            <span class="text-slate-400">Sketch risolti da altri</span>
+            <strong class="text-white">
+              {{ s.artistStats.sketchesSolvedByAtLeastOne }} / {{ s.artistStats.sketchesCreatedCount }}
+            </strong>
+          </div>
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800/80">
+            <span class="text-slate-400">Sfide ricevute sui tuoi sketch</span>
+            <strong class="text-white">{{ s.artistStats.totalPlayersOnMySketches }}</strong>
+          </div>
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800/80">
+            <span class="text-slate-400">Tasso di chiarezza artistica</span>
+            <strong class="text-emerald-400">{{ s.artistStats.artistSuccessRate }}%</strong>
+          </div>
+          <div class="flex items-center justify-between py-2.5">
+            <span class="text-slate-400">Tempo medio per disegno</span>
+            <strong class="text-indigo-300">{{ s.artistStats.avgDrawingTime }}s</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cronologia Partite Recenti (8 colonne) -->
+      <div class="lg:col-span-8 rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+            <span>🕒</span>
+            <span>Le Tue Ultime Sfide Giocate</span>
+          </h2>
+          <a routerLink="/" class="text-xs font-bold text-indigo-400 hover:underline">
+            Vai alla Galleria →
+          </a>
+        </div>
+
+        @if (s.recentGames.length === 0) {
+          <app-empty-state
+            icon="🎯"
+            title="Non hai ancora iniziato nessuna sfida!"
+            description="Esplora gli sketch disegnati dagli altri giocatori nella galleria e prova a indovinare la parola segreta entro 10 tentativi."
+            actionLabel="🖼️ Esplora la Galleria"
+            secondaryActionLabel="✏️ Disegna uno Sketch"
+            (actionClicked)="goToGallery()"
+            (secondaryActionClicked)="goToDraw()"
+          />
+        } @else {
+          <div
+            data-testid="recent-games-list"
+            class="divide-y divide-slate-800/80 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50"
+          >
+            @for (game of s.recentGames; track game.attemptId) {
+              <a
+                [routerLink]="['/sketches', game.sketchId]"
+                class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/50 transition-colors"
+              >
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/20">
+                      {{ game.category }}
+                    </span>
+                    <span class="text-xs text-slate-400">
+                      Autore: <strong class="text-slate-200">{{ game.author }}</strong>
+                    </span>
+                  </div>
+
+                  <div class="text-sm font-bold text-white">
+                    @if (game.word) {
+                      Parola: <span class="uppercase tracking-wider text-emerald-300">{{ game.word }}</span>
+                    } @else {
+                      <span class="text-slate-400 italic">Parola segreta (Sfida ancora aperta)</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                  <span class="text-xs text-slate-400">
+                    {{ game.attemptsCount }}/10 tentativi
+                  </span>
+
+                  @if (game.status === 'WON') {
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      🏆 Indovinato
+                    </span>
+                  } @else if (game.status === 'LOST') {
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                      ❌ Esauriti
+                    </span>
+                  } @else {
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      ⏳ Continua →
+                    </span>
+                  }
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 6. PANNELLO AMMINISTRATORE: GESTIONE POOL DI PAROLE       -->
+    <!-- (Visibile esclusivamente se l'utente ha ruolo ADMIN)      -->
+    <!-- ========================================================= -->
+    @if (authService.isAdmin()) {
+      <div
+        data-testid="admin-words-panel"
+        class="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20 border border-amber-500/30 p-6 sm:p-8 space-y-6"
+      >
+        <div class="space-y-1">
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            🛠️ Strumenti Amministratore
+          </span>
+          <h2 class="text-xl font-extrabold text-white pt-1">
+            Gestione Dizionario Parole (Pool Predefinito)
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Aggiungi nuove parole al database oppure rimuovi una parola esistente tramite il suo nome.
+          </p>
+        </div>
+
+        @if (adminFeedback(); as fb) {
+          <div
+            data-testid="admin-word-feedback"
+            class="p-3.5 rounded-xl text-sm font-medium border"
+            [class]="
+              fb.type === 'SUCCESS'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+            "
+          >
+            {{ fb.type === 'SUCCESS' ? '✅' : '⚠️' }} {{ fb.message }}
+          </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Form 1: Aggiungi Parola (POST /api/words) -->
+          <form
+            (ngSubmit)="onAddWord()"
+            class="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4"
+          >
+            <h3 class="text-sm font-bold text-white">➕ Aggiungi Nuova Parola</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-1">
+                <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                  Parola
+                </label>
+                <input
+                  type="text"
+                  name="newWordText"
+                  required
+                  data-testid="admin-add-word-input"
+                  [ngModel]="newWordText()"
+                  (ngModelChange)="newWordText.set($event)"
+                  placeholder="es. telescopio"
+                  class="w-full min-h-10 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white"
+                />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                  Categoria
+                </label>
+                <select
+                  name="newWordCategory"
+                  [ngModel]="newWordCategory()"
+                  (ngModelChange)="newWordCategory.set($event)"
+                  class="w-full min-h-10 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white"
+                >
+                  @for (cat of categories; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                  Difficoltà
+                </label>
+                <select
+                  name="newWordDifficulty"
+                  [ngModel]="newWordDifficulty()"
+                  (ngModelChange)="newWordDifficulty.set($event)"
+                  class="w-full min-h-10 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white"
+                >
+                  <option value="EASY">Facile (EASY)</option>
+                  <option value="MEDIUM">Media (MEDIUM)</option>
+                  <option value="HARD">Difficile (HARD)</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              data-testid="admin-add-word-btn"
+              [disabled]="!canAddWord()"
+              class="w-full min-h-11 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 cursor-pointer"
+            >
+              Salva Parola nel Pool
+            </button>
+          </form>
+
+          <!-- Form 2: Rimuovi Parola tramite nome (DELETE /api/words/:text) -->
+          <form
+            (ngSubmit)="onDeleteWord()"
+            class="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between gap-4"
+          >
+            <div class="space-y-3">
+              <h3 class="text-sm font-bold text-white">🗑️ Rimuovi Parola dal Pool</h3>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                  Nome esatto della parola da rimuovere
+                </label>
+                <input
+                  type="text"
+                  name="wordToDeleteText"
+                  required
+                  data-testid="admin-delete-word-input"
+                  [ngModel]="wordToDeleteText()"
+                  (ngModelChange)="wordToDeleteText.set($event)"
+                  placeholder="es. clessidra"
+                  class="w-full min-h-10 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              data-testid="admin-delete-word-btn"
+              [disabled]="!canDeleteWord()"
+              class="w-full min-h-11 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-rose-200 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 disabled:opacity-40 cursor-pointer"
+            >
+              Rimuovi Parola dal Dizionario
+            </button>
+          </form>
+        </div>
+      </div>
+    }
+  }
+</section>
