@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AuthService, AuthModalMode } from '../../../services/auth/auth.service';
-import { ModalComponent } from '../../shared/modal/modal.component';
+import { AuthService, AuthModalMode } from '../../services/auth/auth.service';
+import { ModalComponent } from '../shared/modal/modal.component';
 
 @Component({
   selector: 'app-auth-modal',

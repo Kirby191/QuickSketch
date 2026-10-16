@@ -1,0 +1,51 @@
+<div
+      data-testid="empty-state-container"
+      class="w-full rounded-3xl bg-slate-900/60 border border-dashed border-slate-800 px-6 py-12 sm:py-16 text-center flex flex-col items-center justify-center max-w-2xl mx-auto my-4"
+    >
+      <!-- Icona Illustrativa con alone luminoso -->
+      <div
+        class="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-4xl mb-5 shadow-inner"
+      >
+        {{ icon() }}
+      </div>
+
+      <!-- Titolo e Descrizione -->
+      <h2
+        data-testid="empty-state-title"
+        class="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-2.5"
+      >
+        {{ title() }}
+      </h2>
+
+      <p
+        data-testid="empty-state-description"
+        class="text-sm sm:text-base text-slate-400 max-w-md leading-relaxed mb-8"
+      >
+        {{ description() }}
+      </p>
+
+      <!-- Pulsanti di Azione (Call To Action) per non lasciare mai l'utente bloccato -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+        @if (actionLabel()) {
+          <button
+            type="button"
+            data-testid="empty-state-primary-btn"
+            (click)="actionClicked.emit()"
+            class="w-full sm:w-auto min-h-12 px-6 py-3 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer"
+          >
+            {{ actionLabel() }}
+          </button>
+        }
+
+        @if (secondaryActionLabel()) {
+          <button
+            type="button"
+            data-testid="empty-state-secondary-btn"
+            (click)="secondaryActionClicked.emit()"
+            class="w-full sm:w-auto min-h-12 px-5 py-3 rounded-xl font-semibold text-sm text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700 transition-all cursor-pointer"
+          >
+            {{ secondaryActionLabel() }}
+          </button>
+        }
+      </div>
+    </div>

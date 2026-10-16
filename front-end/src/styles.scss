@@ -1,1 +1,12 @@
-
+/* Stili globali sulla radice del documento per eliminare il flash bianco in overscroll */
+html,
+body {
+  background-color: #020617; /* Matching esatto con bg-slate-950 */
+  color: #f8fafc;            /* Matching con text-slate-50 */
+  color-scheme: dark;
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  overscroll-behavior-y: none; /* Impedisce l'elastic bounce oltre la navbar sticky */
+  -webkit-font-smoothing: antialiased;
+}

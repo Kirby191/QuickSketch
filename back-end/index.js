@@ -22,7 +22,9 @@ export const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 1. Middleware globali
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200'
+}));
 app.use(express.json({ limit: '5mb' }));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
