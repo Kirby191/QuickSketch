@@ -260,16 +260,23 @@
               Cronologia dei tuoi tentativi:
             </span>
             <div data-testid="guessed-words-history" class="flex flex-wrap gap-2">
-              @for (word of s.userContext.guessedWords; track word; let idx = $index) {
+        @for (word of s.userContext.guessedWords; track word; let idx = $index) {
                 <span
-                  class="px-3 py-1 rounded-lg text-xs font-bold border"
+                  class="px-3 py-1 rounded-lg text-xs font-bold border inline-flex items-center gap-1.5"
                   [class]="
                     s.word && word.toLowerCase() === s.word.toLowerCase()
                       ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 line-through decoration-rose-500/60'
+                      : isCloseWord(word)
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-200'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 line-through decoration-rose-500/60'
                   "
                 >
-                  {{ idx + 1 }}. {{ word }}
+                  <span>{{ idx + 1 }}. {{ word }}</span>
+                  @if (isCloseWord(word)) {
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-100 uppercase">
+                      🔥 Vicino!
+                    </span>
+                  }
                 </span>
               }
             </div>

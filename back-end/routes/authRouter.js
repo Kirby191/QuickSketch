@@ -1,5 +1,6 @@
 import express from "express";
 import { AuthController } from "../controllers/AuthController.js";
+import { authBruteforceProtection } from "../middleware/rateLimitMiddleware.js";
 
 export const authenticationRouter = express.Router();
 
@@ -28,7 +29,7 @@ export const authenticationRouter = express.Router();
  *         description: Username già in uso
  */
 // Rotta di Registrazione: POST /api/auth/signup
-authenticationRouter.post("/signup", AuthController.signup);
+authenticationRouter.post("/signup", authBruteforceProtection, AuthController.signup);
 
 /**
  * @swagger
@@ -55,4 +56,4 @@ authenticationRouter.post("/signup", AuthController.signup);
  *         description: Credenziali non valide
  */
 // Rotta di Login: POST /api/auth/login
-authenticationRouter.post("/login", AuthController.login);
+authenticationRouter.post("/login", authBruteforceProtection, AuthController.login);

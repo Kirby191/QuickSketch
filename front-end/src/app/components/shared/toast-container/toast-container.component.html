@@ -1,0 +1,42 @@
+    <div
+      class="fixed top-20 right-4 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-2 sm:px-0"
+      aria-live="polite"
+    >
+      @for (toast of toastService.toasts(); track toast.id) {
+        <div
+          data-testid="toast-notification"
+          class="pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-md text-xs sm:text-sm font-semibold transition-all"
+          [class]="
+            toast.type === 'SUCCESS'
+              ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'
+              : toast.type === 'WARNING'
+                ? 'bg-amber-950/90 border-amber-500/40 text-amber-200'
+                : toast.type === 'ERROR'
+                  ? 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+                  : 'bg-slate-900/95 border-indigo-500/40 text-indigo-200'
+          "
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-base">
+              {{
+                toast.type === 'SUCCESS'
+                  ? '✅'
+                  : toast.type === 'WARNING'
+                    ? '🔥'
+                    : toast.type === 'ERROR'
+                      ? '⚠️'
+                      : '💡'
+              }}
+            </span>
+            <span>{{ toast.text }}</span>
+          </div>
+          <button
+            type="button"
+            (click)="toastService.dismiss(toast.id)"
+            class="text-slate-400 hover:text-white px-1.5 py-0.5 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      }
+    </div>

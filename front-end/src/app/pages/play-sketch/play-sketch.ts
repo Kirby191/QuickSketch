@@ -44,6 +44,9 @@ export class PlaySketchComponent {
     text: string;
   } | null>(null);
 
+  // Memorizza quali parole tentate in questa sessione sono andate "molto vicine" alla soluzione
+  readonly closeWordsSet = signal<Set<string>>(new Set());
+
   // Stato Modale di Fine Partita (Vittoria o Esaurimento dei 10 tentativi)
   readonly isResultModalOpen = signal<boolean>(false);
 
@@ -68,16 +71,17 @@ export class PlaySketchComponent {
     Array.from({ length: this.MAX_ATTEMPTS }, (_, i) => i + 1)
   );
 
-  // Array delle caselle lettere (mostra le lettere reali se la parola è svelata, altrimenti '?')
+   // Array delle caselle lettere (mostra le lettere reali se la parola è svelata, altrimenti '?')
   readonly wordCharacters = computed(() => {
     const s = this.sketch();
     if (!s) return [];
     if (s.word) {
       return s.word.toUpperCase().split('');
     }
-    return Array.from({ length: s.wordLength }, () => '?');
+    const typed = this.currentGuess().trim().toUpperCase();
+    return Array.from({ length: s.wordLength }, (_, idx) => typed[idx] || '?');
   });
-
+  
   // Validazione Client-Side in tempo reale per guidare l'utente senza sprecare tentativi
   readonly clientHint = computed(() => {
     const raw = this.currentGuess().trim().toLowerCase();
@@ -129,6 +133,10 @@ export class PlaySketchComponent {
     });
   }
 
+  isCloseWord(word: string): boolean {
+    return this.closeWordsSet().has(word.toLowerCase());
+  }
+
   onSubmitGuess(): void {
     const s = this.sketch();
     const guessText = this.currentGuess().trim();
@@ -139,6 +147,14 @@ export class PlaySketchComponent {
 
     this.sketchService.submitGuess(s.id, guessText).subscribe({
       next: (res) => {
+        if (res.isCloseGuess) {
+          this.closeWordsSet.update((prevSet) => {
+            const next = new Set(prevSet);
+            next.add(guessText.toLowerCase());
+            return next;
+          });
+        }
+        
         this.isSubmitting.set(false);
         this.currentGuess.set('');
 

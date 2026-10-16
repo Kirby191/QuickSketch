@@ -49,6 +49,7 @@ export interface Sketch {
 export interface GuessResponse {
   message: string;
   isCorrect: boolean;
+  isCloseGuess?: boolean;
   status: 'IN_PROGRESS' | 'WON' | 'LOST';
   attemptsCount: number;
   remainingAttempts: number;

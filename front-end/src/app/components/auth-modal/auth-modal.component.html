@@ -32,18 +32,23 @@
       </button>
     </div>
 
-    <!-- Banner Errore dal Server (es. 401 o 409) -->
+    <!-- Banner Errore dal Server (401, 409 o 429 Anti-Bruteforce) -->
     @if (errorMessage()) {
       <div
         data-testid="auth-error-banner"
-        class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-center gap-2.5"
+        class="p-3.5 rounded-xl border text-sm flex items-center gap-2.5"
+        [class]="
+          lockoutSecondsLeft() > 0
+            ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
+            : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+        "
       >
-        <span>⚠️</span>
+        <span>{{ lockoutSecondsLeft() > 0 ? '🛡️' : '⚠️' }}</span>
         <span>{{ errorMessage() }}</span>
       </div>
     }
 
-    <!-- Form con spaziatura verticale calibrata (20px tra i gruppi, 8px tra label e input) -->
+    <!-- Form di Autenticazione -->
     <form (ngSubmit)="onSubmit()" class="auth-form">
       <!-- Gruppo 1: Username -->
       <div class="form-field">
@@ -60,14 +65,15 @@
             spellcheck="false"
             enterkeyhint="next"
             data-testid="auth-username-input"
+            [disabled]="lockoutSecondsLeft() > 0"
             [ngModel]="username()"
             (ngModelChange)="username.set($event)"
-            placeholder="Es. Artista99"
+            placeholder="Es. Artista99 (min. 3 caratteri)"
           />
         </div>
       </div>
 
-      <!-- Gruppo 2: Password (con pulsante Mostra allineato in Flexbox dentro il box) -->
+      <!-- Gruppo 2: Password -->
       <div class="form-field">
         <label for="auth-password">Password</label>
         <div class="input-box">
@@ -79,9 +85,10 @@
             autocomplete="current-password"
             enterkeyhint="done"
             data-testid="auth-password-input"
+            [disabled]="lockoutSecondsLeft() > 0"
             [ngModel]="password()"
             (ngModelChange)="password.set($event)"
-            placeholder="Minimo 4 caratteri"
+            [placeholder]="authService.authModalMode() === 'SIGNUP' ? 'Es. Sketch!2026' : 'Inserisci la tua password'"
           />
           <button
             type="button"
@@ -91,9 +98,63 @@
             {{ showPassword() ? 'Nascondi' : 'Mostra' }}
           </button>
         </div>
+
+        <!-- BARRA SEMAFORICA DI ROBUSTEZZA + CHECKLIST REQUISITI (Visibile in SIGNUP) -->
+        @if (authService.authModalMode() === 'SIGNUP') {
+          <div class="pt-2 space-y-2.5" data-testid="password-strength-meter">
+            <!-- Barra progressiva Rossa / Arancione / Verde -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-slate-400"> Livello sicurezza:</span>
+                <span
+                  data-testid="password-strength-label"
+                  [class]="passwordStrength().textClass"
+                >
+                  {{ passwordStrength().label || 'In attesa di inserimento...' }}
+                </span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
+                <div
+                  data-testid="password-strength-bar"
+                  class="h-full transition-all duration-300"
+                  [class]="passwordStrength().colorClass"
+                  [style.width.%]="passwordStrength().widthPercent"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Checklist interattiva con ✓ e ✕ -->
+            <ul class="grid grid-cols-1 gap-1.5 text-xs bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+              <li
+                data-testid="pwd-req-length"
+                class="flex items-center gap-2 font-medium transition-colors"
+                [class]="pwdChecks().minLength ? 'text-emerald-400' : 'text-slate-400'"
+              >
+                <span class="font-extrabold">{{ pwdChecks().minLength ? '✓' : '✕' }}</span>
+                <span>Almeno 6 caratteri (consigliati 8+)</span>
+              </li>
+              <li
+                data-testid="pwd-req-uppercase"
+                class="flex items-center gap-2 font-medium transition-colors"
+                [class]="pwdChecks().hasUppercase ? 'text-emerald-400' : 'text-slate-400'"
+              >
+                <span class="font-extrabold">{{ pwdChecks().hasUppercase ? '✓' : '✕' }}</span>
+                <span>Almeno una lettera maiuscola (A-Z)</span>
+              </li>
+              <li
+                data-testid="pwd-req-special"
+                class="flex items-center gap-2 font-medium transition-colors"
+                [class]="pwdChecks().hasSpecial ? 'text-emerald-400' : 'text-slate-400'"
+              >
+                <span class="font-extrabold">{{ pwdChecks().hasSpecial ? '✓' : '✕' }}</span>
+                <span>Almeno un carattere speciale (es. ! &#64; # $ % & *)</span>
+              </li>
+            </ul>
+          </div>
+        }
       </div>
 
-      <!-- Gruppo 3: Conferma Password (visibile solo in SIGNUP) -->
+      <!-- Gruppo 3: Conferma Password (solo SIGNUP) -->
       @if (authService.authModalMode() === 'SIGNUP') {
         <div class="form-field">
           <label for="auth-confirm-password">Conferma Password</label>
@@ -105,6 +166,7 @@
               required
               enterkeyhint="done"
               data-testid="auth-confirm-password-input"
+              [disabled]="lockoutSecondsLeft() > 0"
               [ngModel]="confirmPassword()"
               (ngModelChange)="confirmPassword.set($event)"
               placeholder="Ripeti la password"
@@ -113,21 +175,22 @@
         </div>
       }
 
-      <!-- Feedback Validazione Client-Side -->
       @if (clientValidationError()) {
         <p data-testid="auth-validation-hint" class="text-xs font-medium text-amber-400 pt-1">
           {{ clientValidationError() }}
         </p>
       }
 
-      <!-- Pulsante Principale di Invio -->
+      <!-- Pulsante di Invio con supporto al Countdown di Punishment -->
       <button
         type="submit"
         data-testid="auth-submit-btn"
-        [disabled]="!isFormValid() || isLoading()"
+        [disabled]="!isFormValid() || isLoading() || lockoutSecondsLeft() > 0"
         class="submit-btn"
       >
-        @if (isLoading()) {
+        @if (lockoutSecondsLeft() > 0) {
+          <span>⏳ Blocco sicurezza: riprova tra {{ lockoutSecondsLeft() }}s</span>
+        } @else if (isLoading()) {
           <span>Elaborazione in corso...</span>
         } @else {
           <span>{{ authService.authModalMode() === 'LOGIN' ? 'Entra in Gioco' : 'Completa Registrazione' }}</span>

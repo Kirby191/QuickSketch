@@ -6,8 +6,48 @@ const MAX_ATTEMPTS = 10;
 export class AttemptController {
 
     /**
+     * Calcola la distanza di Levenshtein (numero minimo di modifiche di 1 carattere)
+     * tra due stringhe in tempo O(N*M) e spazio O(min(N,M)).
+     */
+    static levenshteinDistance(a, b) {
+        if (a === b) return 0;
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+
+        const matrix = Array.from({ length: a.length + 1 }, () =>
+            new Array(b.length + 1).fill(0)
+        );
+
+        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+        for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,      // Cancellazione
+                    matrix[i][j - 1] + 1,      // Inserimento
+                    matrix[i - 1][j - 1] + cost // Sostituzione
+                );
+            }
+        }
+        return matrix[a.length][b.length];
+    }
+
+    /**
+     * Determina se il tentativo errato è "molto vicino" alla parola reale
+     */
+    static isGuessClose(guess, target) {
+        if (guess === target) return false;
+        const distance = AttemptController.levenshteinDistance(guess, target);
+        // Per parole corte (<= 4 lettere) tolleriamo 1 carattere di differenza;
+        // per parole da 5+ lettere tolleriamo fino a 2 caratteri di differenza.
+        const maxAllowedDistance = target.length <= 4 ? 1 : 2;
+        return distance > 0 && distance <= maxAllowedDistance;
+    }
+
+    /**
      * POST /api/sketches/:id/attempts
-     * Invia un tentativo testuale per indovinare la parola dello sketch :id
      */
     static async submitGuess(req, res, next) {
         try {
@@ -47,7 +87,7 @@ export class AttemptController {
                 }
             });
 
-            // 4. Verifichiamo che la partita su questo sketch non sia già conclusa
+            // 4. Verifichiamo che la partita non sia già conclusa
             if (attempt.status === 'WON') {
                 throw new HttpError(400, "Hai già indovinato questo sketch!");
             }
@@ -55,16 +95,18 @@ export class AttemptController {
                 throw new HttpError(400, "Hai esaurito i 10 tentativi disponibili per questo sketch.");
             }
 
-            // 5. Controlliamo che la parola non sia già stata tentata in precedenza
+            // 5. Controlliamo che la parola non sia già stata tentata
             const guessedWordsList = JSON.parse(attempt.guessedWords || '[]');
             if (guessedWordsList.includes(normalizedGuess)) {
                 throw new HttpError(400, `Hai già provato la parola '${normalizedGuess}' su questo sketch.`);
             }
 
-            // 6. Aggiorniamo il conteggio e lo storico delle parole provate
+            // 6. Valutazione del tentativo e calcolo vicinanza (Levenshtein)
             guessedWordsList.push(normalizedGuess);
             const newAttemptsCount = attempt.attemptsCount + 1;
-            const isCorrect = normalizedGuess === sketch.word.toLowerCase();
+            const targetWord = sketch.word.toLowerCase();
+            const isCorrect = normalizedGuess === targetWord;
+            const isCloseGuess = !isCorrect && AttemptController.isGuessClose(normalizedGuess, targetWord);
 
             let newStatus = 'IN_PROGRESS';
             if (isCorrect) {
@@ -79,24 +121,27 @@ export class AttemptController {
             attempt.guessedWords = JSON.stringify(guessedWordsList);
             await attempt.save();
 
-            // 8. Costruiamo la risposta (sveliamo la soluzione solo se WON o LOST!)
+            // 8. Costruiamo il messaggio di feedback (includendo il suggerimento "Ci sei andato vicino!")
             const revealSolution = newStatus === 'WON' || newStatus === 'LOST';
+            const remaining = MAX_ATTEMPTS - newAttemptsCount;
 
-            let feedbackMessage = `Parola errata! Ti restano ${MAX_ATTEMPTS - newAttemptsCount} tentativi.`;
+            let feedbackMessage = `Parola errata! Ti restano ${remaining} tentativi.`;
             if (newStatus === 'WON') {
                 feedbackMessage = `Complimenti! Hai indovinato la parola al tentativo n° ${newAttemptsCount}!`;
             } else if (newStatus === 'LOST') {
                 feedbackMessage = `Hai esaurito i 10 tentativi! La parola corretta era '${sketch.word}'.`;
+            } else if (isCloseGuess) {
+                feedbackMessage = `🔥 Fuochino! Ci sei andato molto vicino con '${normalizedGuess}'! Ti restano ${remaining} tentativi.`;
             }
 
             res.json({
                 message: feedbackMessage,
                 isCorrect,
+                isCloseGuess,
                 status: newStatus,
                 attemptsCount: newAttemptsCount,
-                remainingAttempts: MAX_ATTEMPTS - newAttemptsCount,
+                remainingAttempts: remaining,
                 guessedWords: guessedWordsList,
-                // La parola corretta viene restituita SOLO a vittoria o sconfitta definitiva
                 solution: revealSolution ? sketch.word : null
             });
         } catch (err) {
