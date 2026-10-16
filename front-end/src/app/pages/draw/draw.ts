@@ -62,12 +62,18 @@ export class DrawComponent implements OnInit, OnDestroy {
   readonly selectedWord = signal<WordItem | null>(null);
   readonly errorMessage = signal<string | null>(null);
 
-  // Stato Strumenti Canvas e Timer
+// Stato Strumenti Canvas e Timer
   readonly timeLeft = signal<number>(this.MAX_TIME);
   readonly activeColor = signal<string>('#0f172a');
   readonly activeBrushIndex = signal<number>(1); // Medio di default
   readonly isEraser = signal<boolean>(false);
   readonly strokesCount = signal<number>(0);
+  readonly isDrawing = signal<boolean>(false);
+
+  // Mostra il suggerimento centrale SOLO se non ci sono tratti E l'utente non sta premendo sulla tela
+  readonly showCanvasHint = computed(
+    () => this.strokesCount() === 0 && !this.isDrawing()
+  );
 
   // Calcolo percentuale e colore barra del tempo
   readonly timeProgressPercent = computed(() =>
@@ -112,9 +118,10 @@ export class DrawComponent implements OnInit, OnDestroy {
     this.phase.set('DRAWING');
     this.timeLeft.set(this.MAX_TIME);
     this.strokesCount.set(0);
+    this.isDrawing.set(false);
     this.errorMessage.set(null);
 
-    // Attendiamo il rendering del DOM del blocco @if (phase() === 'DRAWING')
+    // Ritarda l'inizializzazione di SignaturePad e del timer per garantire che il canvas sia completamente renderizzato
     setTimeout(() => {
       this.initSignaturePad();
       this.startTimer();
@@ -135,8 +142,14 @@ export class DrawComponent implements OnInit, OnDestroy {
       maxWidth: brush.max,
     });
 
+    // Scatta nel momento in cui mouse o dito toccano la canvas
+    this.signaturePad.addEventListener('beginStroke', () => {
+      this.isDrawing.set(true);
+    });
+
     // Aggiorna il contatore dei tratti alla fine di ogni segno disegnato
     this.signaturePad.addEventListener('endStroke', () => {
+      this.isDrawing.set(false);
       if (this.signaturePad) {
         this.strokesCount.set(this.signaturePad.toData().length);
       }
@@ -226,6 +239,7 @@ export class DrawComponent implements OnInit, OnDestroy {
     if (!this.signaturePad) return;
     this.signaturePad.clear();
     this.strokesCount.set(0);
+    this.isDrawing.set(false);
   }
 
   // 5. Gestione Timer di 60 secondi

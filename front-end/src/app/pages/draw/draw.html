@@ -282,10 +282,17 @@
 
       <!-- Area Lavagna HTML5 Canvas con Hint su Tela Vuota -->
       <div class="canvas-wrapper">
-        <canvas #canvasEl data-testid="drawing-canvas"></canvas>
+        <canvas
+          #canvasEl
+          data-testid="drawing-canvas"
+          (pointerdown)="isDrawing.set(true)"
+        ></canvas>
 
-        @if (strokesCount() === 0) {
-          <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-slate-400/70 select-none p-4 text-center">
+        @if (showCanvasHint()) {
+          <div
+            data-testid="canvas-empty-hint"
+            class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-slate-400/70 select-none p-4 text-center"
+          >
             <span class="text-3xl mb-1">✍️</span>
             <p class="text-xs sm:text-sm font-semibold">
               Inizia a disegnare qui usando il mouse o il tocco del dito

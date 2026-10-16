@@ -1,0 +1,334 @@
+<section class="max-w-6xl mx-auto space-y-6">
+  <!-- Barra superiore di navigazione -->
+  <div class="flex items-center justify-between">
+    <a
+      routerLink="/"
+      data-testid="back-to-gallery-link"
+      class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors"
+    >
+      <span>←</span>
+      <span>Torna alla Galleria</span>
+    </a>
+
+    @if (sketch(); as s) {
+      <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+        Categoria: {{ s.category }}
+      </span>
+    }
+  </div>
+
+  <!-- 1. SKELETON LOADING -->
+  @if (isLoading()) {
+    <div data-testid="play-sketch-skeleton" class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse">
+      <div class="lg:col-span-7 aspect-4/3 rounded-3xl bg-slate-900 border border-slate-800"></div>
+      <div class="lg:col-span-5 rounded-3xl bg-slate-900 border border-slate-800 p-6 space-y-6">
+        <div class="h-8 w-3/4 rounded-lg bg-slate-800"></div>
+        <div class="h-14 w-full rounded-xl bg-slate-800"></div>
+        <div class="h-32 w-full rounded-xl bg-slate-800"></div>
+        <div class="h-12 w-full rounded-xl bg-slate-800"></div>
+      </div>
+    </div>
+  } @else if (errorMessage() || !sketch()) {
+    <!-- 2. EMPTY STATE IN CASO DI SKETCH NON TROVATO (404) -->
+    <app-empty-state
+      icon="🖼️"
+      title="Sketch non disponibile"
+      [description]="errorMessage() || 'Questo sketch non esiste o è stato eliminato.'"
+      actionLabel="🔙 Torna alla Galleria"
+      (actionClicked)="goBackToGallery()"
+    />
+  } @else if (sketch(); as s) {
+    <!-- 3. LAYOUT RESPONSIVE A 2 COLONNE (7 col Disegno + 5 col Arena dei 10 Tentativi) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- COLONNA SINISTRA: IL DISEGNO -->
+      <article class="lg:col-span-7 rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl">
+        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg">🎨</span>
+            <div>
+              <span class="text-xs text-slate-400 block">Disegnato da</span>
+              <strong data-testid="sketch-detail-author" class="text-sm font-bold text-white">
+                {{ s.author.username }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
+              ⏱️ Realizzato in <strong class="text-slate-200">{{ s.drawingTime }}s</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
+              💡 <strong class="text-emerald-400">{{ s.stats.solvedCount }}</strong>/{{ s.stats.totalPlayers }} risolti
+            </span>
+          </div>
+        </div>
+
+        <div class="aspect-4/3 w-full bg-white flex items-center justify-center p-4">
+          <img
+            [src]="s.imageData"
+            [alt]="'Sketch di ' + s.author.username"
+            data-testid="sketch-detail-image"
+            class="w-full h-full object-contain"
+          />
+        </div>
+      </article>
+
+      <!-- COLONNA DESTRA: PANNELLO DEI 10 TENTATIVI -->
+      <aside class="lg:col-span-5 rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-7 space-y-6 shadow-2xl">
+        <!-- Caselle della Parola Misteriosa / Svelata -->
+        <div class="text-center space-y-3 p-5 rounded-2xl bg-slate-950 border border-slate-800">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+            @if (s.word) {
+              Soluzione Svelata ({{ s.wordLength }} lettere)
+            } @else {
+              Parola Misteriosa da {{ s.wordLength }} lettere
+            }
+          </span>
+
+          <div
+            data-testid="word-letter-boxes"
+            class="flex items-center justify-center gap-1.5 flex-wrap"
+          >
+            @for (char of wordCharacters(); track $index) {
+              <span
+                class="w-9 h-11 sm:w-10 sm:h-12 rounded-xl font-extrabold text-base sm:text-lg inline-flex items-center justify-center border transition-all"
+                [class]="
+                  s.word
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-inner'
+                    : 'bg-slate-900 border-slate-700 text-slate-400'
+                "
+              >
+                {{ char }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Barra Visuale dei 10 Tentativi -->
+        @if (s.userContext && !s.userContext.isAuthor) {
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="uppercase tracking-wider text-slate-400">Tentativi Utilizzati</span>
+              <span data-testid="attempts-counter" class="text-white">
+                {{ s.userContext.attemptsCount }} / {{ MAX_ATTEMPTS }}
+                ({{ s.userContext.remainingAttempts }} rimasti)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-10 gap-1.5">
+              @for (seg of attemptSegments(); track seg) {
+                <div
+                  class="h-2.5 rounded-full transition-colors"
+                  [class]="
+                    seg <= s.userContext.attemptsCount
+                      ? s.userContext.status === 'WON' && seg === s.userContext.attemptsCount
+                        ? 'bg-emerald-500'
+                        : 'bg-rose-500'
+                      : 'bg-slate-800'
+                  "
+                ></div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Banner Feedback Ultimo Tentativo -->
+        @if (feedbackBanner(); as fb) {
+          <div
+            data-testid="guess-feedback-banner"
+            class="p-3.5 rounded-xl text-sm font-medium border flex items-center gap-2.5"
+            [class]="
+              fb.type === 'SUCCESS'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                : fb.type === 'WARNING'
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+            "
+          >
+            <span>{{ fb.type === 'SUCCESS' ? '🎉' : fb.type === 'WARNING' ? '💡' : '⚠️' }}</span>
+            <span>{{ fb.text }}</span>
+          </div>
+        }
+
+        <!-- CONTROLLO CONTESTUALE: OSPITE vs AUTORE vs GIOCATORE IN CORSO vs PARTITA FINITA -->
+        @if (!authService.isAuthenticated()) {
+          <div class="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-center space-y-4">
+            <p class="text-sm text-slate-300">
+              Sai già che parola si nasconde dietro questo disegno? Effettua l'accesso per mettere alla prova il tuo intuito!
+            </p>
+            <button
+              type="button"
+              data-testid="guest-play-login-btn"
+              (click)="openLoginToPlay()"
+              class="w-full min-h-12 py-3 px-5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer"
+            >
+              🔑 Accedi e Indovina (10 Tentativi)
+            </button>
+          </div>
+        } @else if (s.userContext?.isAuthor) {
+          <div
+            data-testid="author-info-box"
+            class="p-5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-sm text-purple-200 space-y-2"
+          >
+            <div class="font-bold text-base text-white flex items-center gap-2">
+              <span>🎨</span>
+              <span>Questo è un tuo Sketch!</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Come autore conosci già la parola segreta (<strong class="text-white uppercase">{{ s.word }}</strong>) e non puoi effettuare tentativi sul tuo stesso disegno.
+            </p>
+          </div>
+        } @else if (s.userContext?.canPlay) {
+          <!-- FORM DI INVIO TENTATIVO -->
+          <form (ngSubmit)="onSubmitGuess()" class="space-y-3">
+            <div>
+              <label for="guess-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Inserisci il tuo tentativo
+              </label>
+              <input
+                id="guess-input"
+                name="guess"
+                type="text"
+                required
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                enterkeyhint="send"
+                data-testid="guess-input"
+                [ngModel]="currentGuess()"
+                (ngModelChange)="currentGuess.set($event)"
+                [placeholder]="'Scrivi una parola di ' + s.wordLength + ' lettere...'"
+                class="w-full min-h-12 px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-base text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+
+            @if (clientHint(); as hint) {
+              <p
+                data-testid="guess-client-hint"
+                class="text-xs font-medium"
+                [class]="hint.isBlocking ? 'text-rose-400' : 'text-slate-400'"
+              >
+                {{ hint.text }}
+              </p>
+            }
+
+            <button
+              type="submit"
+              data-testid="submit-guess-btn"
+              [disabled]="!canSubmitGuess()"
+              class="w-full min-h-12 py-3 px-5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
+            >
+              @if (isSubmitting()) {
+                <span>Verifica in corso...</span>
+              } @else {
+                <span>🎯 Invia Tentativo ({{ s.userContext?.remainingAttempts }} rimasti)</span>
+              }
+            </button>
+          </form>
+        } @else {
+          <!-- RIEPILOGO PARTITA CONCLUSA (WON o LOST) -->
+          <div
+            data-testid="game-over-summary"
+            class="p-5 rounded-2xl border text-center space-y-3"
+            [class]="
+              s.userContext?.status === 'WON'
+                ? 'bg-emerald-500/10 border-emerald-500/30'
+                : 'bg-rose-500/10 border-rose-500/30'
+            "
+          >
+            <div class="text-3xl">
+              {{ s.userContext?.status === 'WON' ? '🏆' : '🔒' }}
+            </div>
+            <h3 class="text-lg font-extrabold text-white">
+              {{
+                s.userContext?.status === 'WON'
+                  ? 'Hai indovinato questo Sketch!'
+                  : 'Tentativi esauriti (10/10)'
+              }}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300">
+              La parola corretta era <strong class="text-white uppercase tracking-wider">{{ s.word }}</strong>.
+              Hai utilizzato {{ s.userContext?.attemptsCount }} tentativi.
+            </p>
+          </div>
+        }
+
+        <!-- CRONOLOGIA DELLE PAROLE GIÀ TENTATE DALL'UTENTE SU QUESTO SKETCH -->
+        @if (s.userContext && s.userContext.guessedWords.length > 0) {
+          <div class="pt-4 border-t border-slate-800 space-y-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+              Cronologia dei tuoi tentativi:
+            </span>
+            <div data-testid="guessed-words-history" class="flex flex-wrap gap-2">
+              @for (word of s.userContext.guessedWords; track word; let idx = $index) {
+                <span
+                  class="px-3 py-1 rounded-lg text-xs font-bold border"
+                  [class]="
+                    s.word && word.toLowerCase() === s.word.toLowerCase()
+                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 line-through decoration-rose-500/60'
+                  "
+                >
+                  {{ idx + 1 }}. {{ word }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</section>
+
+<!-- MODALE DI FINE PARTITA (Vittoria o Esaurimento dei 10 Tentativi) -->
+<app-modal
+  [isOpen]="isResultModalOpen()"
+  [title]="sketch()?.userContext?.status === 'WON' ? '🎉 Parola Indovinata!' : '⏳ Tentativi Esauriti!'"
+  (closed)="isResultModalOpen.set(false)"
+>
+  <div class="text-center space-y-5">
+    <div class="text-5xl">
+      {{ sketch()?.userContext?.status === 'WON' ? '🏆' : '💡' }}
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-sm text-slate-300">
+        @if (sketch()?.userContext?.status === 'WON') {
+          Hai scoperto la parola segreta al tentativo n° <strong class="text-white">{{ sketch()?.userContext?.attemptsCount }}</strong>!
+        } @else {
+          Hai utilizzato tutti i 10 tentativi disponibili per questo sketch.
+        }
+      </p>
+
+      <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+        <span class="text-xs uppercase tracking-wider text-slate-400 block mb-1">
+          La parola segreta era:
+        </span>
+        <span
+          data-testid="modal-solution-word"
+          class="text-2xl font-extrabold uppercase tracking-widest text-emerald-400"
+        >
+          {{ sketch()?.word }}
+        </span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+      <button
+        type="button"
+        (click)="isResultModalOpen.set(false)"
+        class="min-h-11 py-2.5 px-4 rounded-xl text-sm font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 cursor-pointer"
+      >
+        Rimani sullo Sketch
+      </button>
+      <button
+        type="button"
+        data-testid="modal-back-gallery-btn"
+        (click)="goBackToGallery()"
+        class="min-h-11 py-2.5 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer"
+      >
+        🖼️ Altri Sketch
+      </button>
+    </div>
+  </div>
+</app-modal>
