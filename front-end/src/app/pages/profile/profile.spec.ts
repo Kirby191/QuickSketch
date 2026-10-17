@@ -7,6 +7,7 @@ import { StatsService } from '../../services/stats/stats.service';
 import { WordService } from '../../services/word/word.service';
 import { ProfileComponent } from './profile';
 
+// Verifica statistiche personali, gestione dizionario admin e navigazione del profilo.
 describe('ProfileComponent', () => {
   let fixture: ComponentFixture<ProfileComponent>;
   let component: ProfileComponent;
@@ -55,6 +56,7 @@ describe('ProfileComponent', () => {
     component.ngOnInit();
   });
 
+  // Le statistiche e la validazione client-side precedono l'inserimento della parola.
   it('loads personal stats and validates admin word actions', () => {
     expect(component.stats()?.user.id).toBe(1);
     expect(component.canAddWord()).toBe(false);
@@ -65,6 +67,7 @@ describe('ProfileComponent', () => {
     expect(component.adminFeedback()?.message).toBe('aggiunta');
   });
 
+  // La cancellazione normalizza il testo e presenta gli errori del servizio.
   it('deletes normalized words and handles errors', () => {
     component.wordToDeleteText.set('  Cane ');
     component.onDeleteWord();
@@ -75,6 +78,7 @@ describe('ProfileComponent', () => {
     expect(component.adminFeedback()).toEqual({ type: 'ERROR', message: 'missing' });
   });
 
+  // I comandi rapidi del profilo portano a galleria e area di disegno.
   it('navigates to gallery and drawing', () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -84,6 +88,7 @@ describe('ProfileComponent', () => {
     expect(router.navigate).toHaveBeenNthCalledWith(2, ['/draw']);
   });
 
+  // Il template rende metriche, partite recenti e pannello admin per il ruolo corretto.
   it('renders profile metrics, recent games and the admin panel', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="profile-username"]').textContent).toContain('Ada');

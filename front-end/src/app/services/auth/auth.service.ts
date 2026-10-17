@@ -37,6 +37,7 @@ export class AuthService {
   readonly isAuthModalOpen = this.authModalOpenSignal.asReadonly();
   readonly authModalMode = this.authModalModeSignal.asReadonly();
 
+  // Recupera la sessione salvata, ignorando dati corrotti o non più leggibili.
   private loadUserFromStorage(): User | null {
     try {
       const raw = localStorage.getItem(USER_KEY);
@@ -82,6 +83,7 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
+  // Salva token e utente e completa l'eventuale redirect richiesto dalla guardia.
   private setSession(authResult: AuthResponse): void {
     localStorage.setItem(TOKEN_KEY, authResult.token);
     localStorage.setItem(USER_KEY, JSON.stringify(authResult.user));

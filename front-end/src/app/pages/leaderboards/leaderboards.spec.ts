@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { StatsService } from '../../services/stats/stats.service';
 import { LeaderboardsComponent } from './leaderboards';
 
+// Verifica caricamento classifiche, profili pubblici e stati vuoti.
 describe('LeaderboardsComponent', () => {
   let fixture: ComponentFixture<LeaderboardsComponent>;
   let component: LeaderboardsComponent;
@@ -35,6 +36,7 @@ describe('LeaderboardsComponent', () => {
     component.ngOnInit();
   });
 
+  // I dati ricevuti alimentano entrambe le classifiche e i relativi podi.
   it('loads both leaderboards and derives podiums', () => {
     expect(stats['getLeaderboards']).toHaveBeenCalledWith(20);
     expect(component.topThreePlayers().length).toBe(1);
@@ -43,6 +45,7 @@ describe('LeaderboardsComponent', () => {
     expect(component.getMedalEmoji(4)).toBe('#4');
   });
 
+  // Il profilo pubblico può essere aperto e chiuso dal contesto della classifica.
   it('loads and closes a public profile', () => {
     component.openPublicProfile(5);
     expect(component.selectedUserStats()).toEqual({ user: { id: 5 } });
@@ -50,6 +53,7 @@ describe('LeaderboardsComponent', () => {
     expect(component.isUserModalOpen()).toBe(false);
   });
 
+  // Gli errori del profilo vengono esposti e i link agli sketch navigano correttamente.
   it('reports loading errors and navigates to a sketch', () => {
     stats['getUserStats'].mockReturnValue(throwError(() => ({ error: { description: 'errore' } })));
     component.openPublicProfile(8);
@@ -60,6 +64,7 @@ describe('LeaderboardsComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/sketches', 3]);
   });
 
+  // Le tab mostrano alternativamente classifiche giocatori e artisti.
   it('renders player and artist tables and switches between them', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="leaderboard-players-table"]')).toBeTruthy();
@@ -70,6 +75,7 @@ describe('LeaderboardsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Bob');
   });
 
+  // Una classifica senza dati usa lo stato vuoto condiviso.
   it('renders the empty-state action when a leaderboard has no players', () => {
     stats['getLeaderboards'].mockReturnValue(of({ bestPlayers: [], bestArtists: [] }));
     component.loadLeaderboards();

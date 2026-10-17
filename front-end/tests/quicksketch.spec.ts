@@ -196,7 +196,7 @@ test.describe('QuickSketch Full-Stack End-to-End Suite (10 Isolated Tests)', () 
   });
 
   // TEST 6: Regola Anti-Cheat Autore (Isolato)
-  test('6. L’autore dello sketch visualizza la propria parola segreta ma non può inviare tentativi sul proprio disegno', async ({ page, request }) => {
+  test('6. L\’autore dello sketch visualizza la propria parola segreta ma non può inviare tentativi sul proprio disegno', async ({ page, request }) => {
     const seeded = await seedSketchViaApi(request, 't6');
 
     await page.goto('/');

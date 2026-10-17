@@ -1,3 +1,4 @@
+// Modelli restituiti dall'API e condivisi tra componenti e servizi.
 export interface User {
   id: number;
   username: string;
@@ -28,6 +29,7 @@ export interface SketchUserContext {
   closeWords: string[];
 }
 
+// Dettaglio di uno sketch, con dati pubblici e contesto della partita corrente.
 export interface Sketch {
   id: number;
   category: string;
@@ -58,6 +60,7 @@ export interface GuessResponse {
   solution: string | null;
 }
 
+// Dati aggregati usati dalle due classifiche dell'applicazione.
 export interface LeaderboardPlayer {
   rank: number;
   userId: number;

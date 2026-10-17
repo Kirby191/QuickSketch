@@ -8,6 +8,7 @@ import { Component, input, computed } from '@angular/core';
   templateUrl: './sketch-card-skeleton.component.html',
 })
 export class SketchCardSkeletonComponent {
+  // Crea un elemento segnaposto per ogni card prevista dalla griglia.
   readonly count = input<number>(6);
   readonly itemsArray = computed(() => Array.from({ length: this.count() }, (_, i) => i));
 }

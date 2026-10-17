@@ -11,7 +11,8 @@ export class SketchService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = API_CONFIG.endpoints.sketches;
 
-// Recupera la galleria degli sketch con filtri opzionali e paginazione sulla query string
+  // Costruisce la query mantenendo opzionali categoria e autore.
+  // Recupera la galleria con filtri opzionali e paginazione.
   getSketches(
     category?: string,
     authorId?: number,

@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 export function createModel(database) {
+    // imageData contiene l'immagine della canvas in formato Base64.
     database.define('Sketch', {
         id: {
             type: DataTypes.INTEGER,
@@ -17,11 +18,12 @@ export function createModel(database) {
             defaultValue: 'Generale'
         },
         imageData: {
-            type: DataTypes.TEXT, // TEXT è fondamentale per contenere l'intera stringa Base64 della canvas!
+            type: DataTypes.TEXT,
             allowNull: false
         },
         drawingTime: {
-            type: DataTypes.INTEGER, // Tempo impiegato in secondi
+            // Durata del disegno espressa in secondi.
+            type: DataTypes.INTEGER,
             allowNull: true
         }
     }, {

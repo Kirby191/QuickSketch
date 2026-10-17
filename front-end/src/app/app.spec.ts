@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { AuthService } from './services/auth/auth.service';
 
+// Verifica che l'app shell componga correttamente le aree globali dell'interfaccia.
 describe('App', () => {
   let fixture: ComponentFixture<App>;
   let component: App;
@@ -24,6 +25,7 @@ describe('App', () => {
     localStorage.clear();
   });
 
+  // Le regioni condivise devono essere presenti indipendentemente dalla rotta attiva.
   it('creates the application shell with its global regions', () => {
     expect(component).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-navbar')).toBeTruthy();
@@ -32,6 +34,7 @@ describe('App', () => {
     expect(fixture.nativeElement.querySelector('app-toast-container')).toBeTruthy();
   });
 
+  // Il footer mantiene visibili le informazioni istituzionali dell'applicazione.
   it('renders the institutional footer content', () => {
     const footer = fixture.nativeElement.querySelector('footer');
     expect(footer).toBeTruthy();
@@ -39,6 +42,7 @@ describe('App', () => {
     expect(footer.textContent).toContain('Università degli Studi di Napoli Federico II');
   });
 
+  // La shell usa la stessa istanza di autenticazione resa disponibile dal sistema DI.
   it('exposes the singleton authentication service to the shell', () => {
     expect(component.authService).toBe(TestBed.inject(AuthService));
     expect(component.authService.isAuthModalOpen()).toBe(false);

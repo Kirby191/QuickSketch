@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 export function createModel(database) {
+    // Il dizionario alimenta sia il gioco sia la validazione degli sketch pubblicati.
     database.define('Word', {
         id: {
             type: DataTypes.INTEGER,
@@ -13,6 +14,7 @@ export function createModel(database) {
             unique: true
         },
         category: {
+            // La categoria permette di filtrare la galleria e organizzare il dizionario.
             type: DataTypes.STRING,
             allowNull: false,
             defaultValue: 'Generale'

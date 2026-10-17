@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmptyStateComponent } from './empty-state.component';
 
+// Verifica il contenuto configurabile e le azioni dello stato vuoto riutilizzabile.
 describe('EmptyStateComponent', () => {
   let fixture: ComponentFixture<EmptyStateComponent>;
   let component: EmptyStateComponent;
@@ -16,6 +17,7 @@ describe('EmptyStateComponent', () => {
     fixture.detectChanges();
   });
 
+  // Titoli, descrizioni e pulsanti devono riflettere gli input del contenitore.
   it('renders all configured content and actions', () => {
     expect(fixture.nativeElement.textContent).toContain('Nessun risultato');
     expect(fixture.nativeElement.textContent).toContain('Prova più tardi');
@@ -23,6 +25,7 @@ describe('EmptyStateComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="empty-state-secondary-btn"]')).toBeTruthy();
   });
 
+  // I due pulsanti emettono eventi distinti verso il componente padre.
   it('emits primary and secondary actions', () => {
     const primary = vi.fn();
     const secondary = vi.fn();

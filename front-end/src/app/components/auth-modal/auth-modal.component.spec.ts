@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { ToastService } from '../../services/toast/toast.service';
 import { AuthModalComponent } from './auth-modal.component';
 
+// Copre validazione, invio e rendering del modale condiviso di autenticazione.
 describe('AuthModalComponent', () => {
   let fixture: ComponentFixture<AuthModalComponent>;
   let component: AuthModalComponent;
@@ -33,6 +34,7 @@ describe('AuthModalComponent', () => {
     fixture.detectChanges();
   });
 
+  // La forza della password aggiorna livello e requisiti esposti all'interfaccia.
   it('computes password requirements and strength levels', () => {
     component.password.set('abc');
     expect(component.passwordStrength().level).toBe('WEAK');
@@ -48,6 +50,7 @@ describe('AuthModalComponent', () => {
     });
   });
 
+  // Login e registrazione applicano regole diverse, inclusa la conferma password.
   it('validates login and signup forms differently', () => {
     component.username.set('ab');
     component.password.set('1234');
@@ -63,6 +66,7 @@ describe('AuthModalComponent', () => {
     expect(component.isFormValid()).toBe(true);
   });
 
+  // Un login riuscito pulisce il form e informa l'utente tramite toast.
   it('submits login, resets the form and shows a success toast', () => {
     component.username.set(' Ada ');
     component.password.set('secret');
@@ -74,6 +78,7 @@ describe('AuthModalComponent', () => {
     expect(toast.show).toHaveBeenCalledWith('Bentornato, Ada!', 'SUCCESS');
   });
 
+  // Un rate limit del server viene mostrato e avvia il countdown di blocco.
   it('surfaces auth errors and starts a lockout for HTTP 429', () => {
     auth['login'] = vi.fn(() => throwError(() => ({ status: 429, error: { retryAfterSeconds: 2, description: 'Troppi tentativi' } })));
     component.username.set('Ada');
@@ -84,6 +89,7 @@ describe('AuthModalComponent', () => {
     component.ngOnDestroy();
   });
 
+  // I controlli esclusivi della registrazione e la visibilità password seguono lo stato del modale.
   it('renders signup-only fields and switches password visibility', () => {
     component.switchMode('SIGNUP');
     fixture.detectChanges();
@@ -96,6 +102,7 @@ describe('AuthModalComponent', () => {
     expect(password.type).toBe('text');
   });
 
+  // Anche errori privi di descrizione ricevono un messaggio comprensibile.
   it('maps server errors without a description to the fallback message', () => {
     auth['login'] = vi.fn(() => throwError(() => ({ status: 500, error: {} })));
     component.username.set('Ada');

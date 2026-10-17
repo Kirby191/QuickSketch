@@ -5,6 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { API_CONFIG } from '../../config/api.config';
 import { AuthService } from './auth.service';
 
+// Verifica persistenza della sessione, modale condiviso e chiamate di autenticazione.
 describe('AuthService', () => {
   let service: AuthService;
   let http: HttpTestingController;
@@ -25,6 +26,7 @@ describe('AuthService', () => {
     localStorage.clear();
   });
 
+  // Token e utente salvati vengono ripristinati e alimentano i selettori derivati.
   it('loads a persisted session and exposes derived auth state', () => {
     localStorage.setItem('quicksketch_jwt_token', 'stored');
     localStorage.setItem('quicksketch_user', JSON.stringify({ ...user, role: 'ADMIN' }));
@@ -37,6 +39,7 @@ describe('AuthService', () => {
     expect(restored.isAdmin()).toBe(true);
   });
 
+  // Il servizio coordina apertura, modalità e chiusura del modale globale.
   it('opens, switches and closes the auth modal', () => {
     service.openAuthModal('SIGNUP', '/draw');
     expect(service.isAuthModalOpen()).toBe(true);
@@ -47,6 +50,7 @@ describe('AuthService', () => {
     expect(service.isAuthModalOpen()).toBe(false);
   });
 
+  // Il login salva la sessione e completa il redirect originato da una rotta protetta.
   it('stores the session after login and redirects when requested', () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -61,6 +65,7 @@ describe('AuthService', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/draw');
   });
 
+  // La registrazione usa l'endpoint corretto e il logout pulisce stato e storage.
   it('uses the signup endpoint and clears the session on logout', () => {
     service.signup('Ada', 'secret').subscribe();
     http.expectOne(`${API_CONFIG.endpoints.auth}/signup`).flush(response);

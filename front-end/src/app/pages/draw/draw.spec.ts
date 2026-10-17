@@ -7,6 +7,7 @@ import { ToastService } from '../../services/toast/toast.service';
 import { WordService } from '../../services/word/word.service';
 import { DrawComponent } from './draw';
 
+// Verifica selezione della parola, strumenti canvas e pubblicazione del disegno.
 describe('DrawComponent', () => {
   let fixture: ComponentFixture<DrawComponent>;
   let component: DrawComponent;
@@ -30,6 +31,7 @@ describe('DrawComponent', () => {
     component.ngOnInit();
   });
 
+  // L'apertura della pagina carica le parole e prepara lo stato iniziale.
   it('loads words and exposes initial drawing state', () => {
     expect(component.wordOptions()[0].text).toBe('gatto');
     expect(component.phase()).toBe('SELECT_WORD');
@@ -38,6 +40,7 @@ describe('DrawComponent', () => {
     expect(component.canPublish()).toBe(false);
   });
 
+  // La scelta di una parola azzera lo storico e avvia una nuova sessione di disegno.
   it('resets drawing state when a word is selected', () => {
     component.chooseWordAndStart(component.wordOptions()[0]);
     expect(component.phase()).toBe('DRAWING');
@@ -47,6 +50,7 @@ describe('DrawComponent', () => {
     component.ngOnDestroy();
   });
 
+  // I comandi della toolbar aggiornano strumento, colore e dimensione del tratto.
   it('switches tools, colors and brush sizes', () => {
     component.toggleBucketTool();
     expect(component.isBucket()).toBe(true);
@@ -60,6 +64,7 @@ describe('DrawComponent', () => {
     expect(component.activeBrushIndex()).toBe(2);
   });
 
+  // Le scorciatoie sono attive solo nel canvas e non interferiscono con gli input.
   it('handles keyboard shortcuts only while drawing and ignores form fields', () => {
     component.phase.set('DRAWING');
     component.onKeyDown(new KeyboardEvent('keydown', { key: 'e' }));
@@ -74,6 +79,7 @@ describe('DrawComponent', () => {
     expect(component.isEraser()).toBe(true);
   });
 
+  // Gli errori di caricamento sono esposti e le difficoltà ricevono l'etichetta corretta.
   it('reports word loading errors and difficulty labels', () => {
     words['getRandomWords'].mockReturnValue(throwError(() => ({ error: { description: 'offline' } })));
     component.fetchRandomWords();
@@ -83,6 +89,7 @@ describe('DrawComponent', () => {
     expect(component.getDifficultyBadge('MEDIUM').label).toBe('Media');
   });
 
+  // La fase di selezione mostra le parole ma non ancora i controlli del disegno.
   it('renders the word selection state and keyboard legend', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="word-choices-grid"]')).toBeTruthy();
@@ -90,6 +97,7 @@ describe('DrawComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="refresh-words-btn"]')).toBeTruthy();
   });
 
+  // Il template riflette la fase di disegno e inoltra i click alla toolbar.
   it('renders drawing controls and updates the tool through the template', () => {
     fixture.detectChanges();
     component.phase.set('DRAWING');
@@ -103,6 +111,7 @@ describe('DrawComponent', () => {
     expect(component.isPen()).toBe(true);
   });
 
+  // Un disegno valido viene inviato e apre il dettaglio dello sketch creato.
   it('publishes a completed drawing and navigates to its detail page', () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -119,6 +128,7 @@ describe('DrawComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/sketches', 4]);
   });
 
+  // Un errore di pubblicazione mantiene il lavoro locale e informa l'utente.
   it('returns to drawing and reports publishing failures', () => {
     sketches['createSketch'].mockReturnValue(throwError(() => ({ error: { description: 'server error' } })));
     component.canvasRef = new ElementRef({ toDataURL: () => 'data:image/png;base64,canvas' } as HTMLCanvasElement);

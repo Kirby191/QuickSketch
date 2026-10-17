@@ -11,6 +11,7 @@ export const routes: Routes = [
     title: 'QuickSketch — Galleria Sketch',
   },
   {
+    // Le pagine pesanti vengono caricate solo quando l'utente le visita.
     path: 'leaderboards',
     loadComponent: () =>
       import('./pages/leaderboards/leaderboards').then(

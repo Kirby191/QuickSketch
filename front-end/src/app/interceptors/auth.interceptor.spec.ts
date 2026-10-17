@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
 import { authInterceptor } from './auth.interceptor';
 
+// Verifica aggiunta del token e reazione alle risposte di sessione non valida.
 describe('authInterceptor', () => {
   let auth: { token: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn>; openAuthModal: ReturnType<typeof vi.fn> };
 
@@ -13,6 +14,7 @@ describe('authInterceptor', () => {
     TestBed.configureTestingModule({ providers: [{ provide: AuthService, useValue: auth }] });
   });
 
+  // Le richieste con sessione attiva ricevono l'header Authorization.
   it('adds a bearer token when authenticated', () => {
     auth.token.mockReturnValue('jwt');
     const next = vi.fn((req: HttpRequest<unknown>) => {
@@ -23,6 +25,7 @@ describe('authInterceptor', () => {
     expect(next).toHaveBeenCalled();
   });
 
+  // Le richieste anonime non devono ricevere header artificiali.
   it('leaves anonymous requests unchanged', () => {
     auth.token.mockReturnValue(null);
     const next = vi.fn((req: HttpRequest<unknown>) => {
@@ -32,6 +35,7 @@ describe('authInterceptor', () => {
     TestBed.runInInjectionContext(() => authInterceptor(new HttpRequest('GET', '/api/sketches'), next)).subscribe();
   });
 
+  // Un 401 su una rotta protetta invalida la sessione e riapre il login.
   it('clears auth state on an unauthorized non-auth response', () => {
     auth.token.mockReturnValue('jwt');
     const error = new HttpErrorResponse({ status: 401, url: '/api/sketches' });
@@ -42,6 +46,7 @@ describe('authInterceptor', () => {
     expect(auth.openAuthModal).toHaveBeenCalledWith('LOGIN');
   });
 
+  // Un 401 prodotto dal login non deve innescare un secondo logout.
   it('does not clear auth state for auth endpoint failures', () => {
     const error = new HttpErrorResponse({ status: 401, url: '/api/auth/login' });
     TestBed.runInInjectionContext(() => authInterceptor(new HttpRequest('POST', error.url!, null), () => throwError(() => error))).subscribe({

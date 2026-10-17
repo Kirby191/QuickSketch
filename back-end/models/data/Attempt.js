@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 export function createModel(database) {
+    // Un tentativo rappresenta la partita di un giocatore su uno specifico sketch.
     database.define('Attempt', {
         id: {
             type: DataTypes.INTEGER,
@@ -8,6 +9,7 @@ export function createModel(database) {
             autoIncrement: true
         },
         attemptsCount: {
+            // Il contatore viene aggiornato a ogni parola inviata dal giocatore.
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0

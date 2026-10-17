@@ -7,5 +7,6 @@ import { ToastService } from '../../../services/toast/toast.service';
   templateUrl: './toast-container.component.html',
 })
 export class ToastContainerComponent {
+  // Espone al template la lista reattiva dei messaggi da visualizzare.
   readonly toastService = inject(ToastService);
 }

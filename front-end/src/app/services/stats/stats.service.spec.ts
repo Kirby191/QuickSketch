@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { API_CONFIG } from '../../config/api.config';
 import { StatsService } from './stats.service';
 
+// Verifica le richieste per classifiche e statistiche personali o pubbliche.
 describe('StatsService', () => {
   let service: StatsService;
   let http: HttpTestingController;
@@ -18,6 +19,7 @@ describe('StatsService', () => {
 
   afterEach(() => http.verify());
 
+  // Il limite scelto dall'utente viene trasmesso alla rotta delle classifiche.
   it('requests leaderboards with the requested limit', () => {
     service.getLeaderboards(20).subscribe();
     const request = http.expectOne(`${API_CONFIG.endpoints.stats}/leaderboards?limit=20`);
@@ -25,6 +27,7 @@ describe('StatsService', () => {
     request.flush({});
   });
 
+  // Le statistiche personali e quelle di un altro utente usano endpoint distinti.
   it('requests personal and public user statistics', () => {
     service.getMyStats().subscribe();
     const personalRequest = http.expectOne(`${API_CONFIG.endpoints.stats}/me`);

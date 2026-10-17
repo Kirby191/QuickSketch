@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { API_CONFIG } from '../../config/api.config';
 import { SketchService } from './sketch.service';
 
+// Verifica costruzione delle richieste per galleria, pubblicazione e tentativi.
 describe('SketchService', () => {
   let service: SketchService;
   let http: HttpTestingController;
@@ -19,6 +20,7 @@ describe('SketchService', () => {
 
   afterEach(() => http.verify());
 
+  // Filtri e paginazione vengono serializzati nella query della galleria.
   it('loads sketches with pagination and optional filters', () => {
     service.getSketches('Animali', 7, 12, 24).subscribe();
     const request = http.expectOne((req) => req.url === API_CONFIG.endpoints.sketches);
@@ -27,6 +29,7 @@ describe('SketchService', () => {
     request.flush([]);
   });
 
+  // La categoria "Tutte" non deve diventare un filtro trasmesso al backend.
   it('omits the category for the all-categories filter', () => {
     service.getSketches('Tutte').subscribe();
     const request = http.expectOne((req) => req.url === API_CONFIG.endpoints.sketches);
@@ -35,6 +38,7 @@ describe('SketchService', () => {
     request.flush([]);
   });
 
+  // Il servizio espone le operazioni CRUD principali sugli sketch.
   it('gets, creates and deletes sketches', () => {
     service.getSketchById(3).subscribe();
     expect(http.expectOne(`${API_CONFIG.endpoints.sketches}/3`).request.method).toBe('GET');
@@ -48,6 +52,7 @@ describe('SketchService', () => {
     expect(http.expectOne(`${API_CONFIG.endpoints.sketches}/3`).request.method).toBe('DELETE');
   });
 
+  // I tentativi vengono ripuliti prima di essere inviati all'API.
   it('trims guesses before submitting them', () => {
     service.submitGuess(3, '  gatto  ').subscribe();
     const request = http.expectOne(`${API_CONFIG.endpoints.sketches}/3/attempts`);

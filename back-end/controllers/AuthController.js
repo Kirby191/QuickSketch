@@ -12,6 +12,7 @@ const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]~;']/;
 
 export class AuthController {
 
+    // Centralizza le regole condivise per registrazione e accesso.
     static validatePasswordStrength(password) {
         if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
             return "La password deve contenere almeno 6 caratteri.";
@@ -106,6 +107,7 @@ export class AuthController {
     }
 
     static issueToken(user) {
+        // Nel token finiscono solo i dati necessari ai middleware di autorizzazione.
         return Jwt.sign(
             { userId: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
@@ -114,6 +116,7 @@ export class AuthController {
     }
 
     static isTokenValid(token, callback) {
+        // Mantiene la verifica asincrona così il middleware può gestire il risultato.
         Jwt.verify(token, process.env.JWT_SECRET, callback);
     }
 }

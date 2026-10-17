@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SketchCardSkeletonComponent } from './sketch-card-skeleton.component';
 
+// Verifica che il placeholder della galleria rispetti il numero richiesto di card.
 describe('SketchCardSkeletonComponent', () => {
   let fixture: ComponentFixture<SketchCardSkeletonComponent>;
   let component: SketchCardSkeletonComponent;
@@ -15,6 +16,7 @@ describe('SketchCardSkeletonComponent', () => {
     fixture.detectChanges();
   });
 
+  // Il valore predefinito mostra sei card e comunica lo stato di caricamento.
   it('renders the default six loading cards with loading semantics', () => {
     expect(component.count()).toBe(6);
     expect(component.itemsArray()).toEqual([0, 1, 2, 3, 4, 5]);
@@ -24,6 +26,7 @@ describe('SketchCardSkeletonComponent', () => {
     expect(grid.children.length).toBe(6);
   });
 
+  // Il conteggio configurato aggiorna la griglia, incluso il caso vuoto.
   it('renders the requested number of cards and handles zero', () => {
     fixture.componentRef.setInput('count', 3);
     fixture.detectChanges();

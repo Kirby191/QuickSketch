@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { SketchService } from '../../services/sketch/sketch.service';
 import { GalleryComponent } from './gallery';
 
+// Verifica caricamento, filtri, paginazione e azioni sulle card della galleria.
 describe('GalleryComponent', () => {
   let fixture: ComponentFixture<GalleryComponent>;
   let component: GalleryComponent;
@@ -40,6 +41,7 @@ describe('GalleryComponent', () => {
     fixture.detectChanges();
   });
 
+  // I filtri locali e quelli inviati al servizio mantengono la selezione coerente.
   it('loads sketches and filters by author, status and category', () => {
     expect(component.sketches()).toEqual(data);
     component.authorSearch.set('alice');
@@ -52,6 +54,7 @@ describe('GalleryComponent', () => {
     expect(sketches['getSketches']).toHaveBeenCalledWith('Animali', undefined, 24, 0);
   });
 
+  // La paginazione incrementale aggiunge risultati senza duplicare richieste concorrenti.
   it('loads more pages and prevents duplicate pagination requests', () => {
     component.hasMorePages.set(true);
     component.loadMoreSketches();
@@ -59,6 +62,7 @@ describe('GalleryComponent', () => {
     expect(component.isLoadingMore()).toBe(false);
   });
 
+  // La cancellazione aggiorna la lista e gli errori di rete diventano visibili.
   it('deletes the selected sketch and reports load errors', () => {
     component.confirmDelete(data[0] as never, { stopPropagation: vi.fn() } as never);
     component.executeDelete();
@@ -68,6 +72,7 @@ describe('GalleryComponent', () => {
     expect(component.errorMessage()).toBe('offline');
   });
 
+  // L'apertura dello sketch e l'avvio del disegno distinguono utenti e ospiti.
   it('navigates authenticated users and opens login for guests', () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -77,6 +82,7 @@ describe('GalleryComponent', () => {
     expect(auth['openAuthModal']).toHaveBeenCalledWith('LOGIN', '/draw');
   });
 
+  // Il template mostra il banner di errore quando il caricamento fallisce.
   it('renders the gallery error state and retry action', () => {
     sketches['getSketches'].mockReturnValue(throwError(() => ({ error: { description: 'server offline' } })));
     component.loadSketches();

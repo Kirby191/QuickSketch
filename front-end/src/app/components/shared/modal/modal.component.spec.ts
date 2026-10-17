@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalComponent } from './modal.component';
 
+// Verifica visibilità, accessibilità di base e chiusura del contenitore modale.
 describe('ModalComponent', () => {
   let fixture: ComponentFixture<ModalComponent>;
   let component: ModalComponent;
@@ -14,6 +15,7 @@ describe('ModalComponent', () => {
     fixture.detectChanges();
   });
 
+  // L'apertura blocca lo scroll della pagina e la chiusura lo ripristina.
   it('renders only when open and manages body scrolling', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="modal-backdrop"]')).toBeNull();
     fixture.componentRef.setInput('isOpen', true);
@@ -25,6 +27,7 @@ describe('ModalComponent', () => {
     expect(document.body.style.overflow).toBe('');
   });
 
+  // Tutti i canali previsti per chiudere il modale notificano lo stesso evento.
   it('emits close from the button, backdrop and Escape', () => {
     const closed = vi.fn();
     component.closed.subscribe(closed);

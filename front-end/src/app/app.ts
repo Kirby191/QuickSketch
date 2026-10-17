@@ -14,5 +14,6 @@ import { ToastContainerComponent } from './components/shared/toast-container/toa
   styleUrl: './app.scss',
 })
 export class App {
+  // Mantiene disponibili autenticazione e componenti condivisi nell'app shell.
   readonly authService = inject(AuthService);
 }

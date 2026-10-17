@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
 import { NavbarComponent } from './navbar.component';
 
+// Verifica navigazione, sessione e comportamento responsive della barra principale.
 describe('NavbarComponent', () => {
   let fixture: ComponentFixture<NavbarComponent>;
   let component: NavbarComponent;
@@ -32,6 +33,7 @@ describe('NavbarComponent', () => {
     fixture.detectChanges();
   });
 
+  // I comandi di accesso aprono la modalità corretta e chiudono il menu mobile.
   it('opens the appropriate auth modal and closes mobile navigation', () => {
     component.isMobileMenuOpen.set(true);
     component.openLogin();
@@ -41,6 +43,7 @@ describe('NavbarComponent', () => {
     expect(auth.openAuthModal).toHaveBeenCalledWith('SIGNUP');
   });
 
+  // Il menu mobile può essere aperto e chiuso esplicitamente.
   it('toggles and closes the mobile menu', () => {
     component.toggleMobileMenu();
     expect(component.isMobileMenuOpen()).toBe(true);
@@ -48,11 +51,13 @@ describe('NavbarComponent', () => {
     expect(component.isMobileMenuOpen()).toBe(false);
   });
 
+  // Il logout viene delegato al servizio di autenticazione.
   it('delegates logout', () => {
     component.logout();
     expect(auth.logout).toHaveBeenCalledOnce();
   });
 
+  // Un utente autenticato vede i link personali e le funzioni amministrative disponibili.
   it('renders authenticated desktop and mobile navigation', () => {
     auth.isAuthenticated.set(true);
     auth.currentUser.set({ username: 'Ada' });

@@ -3,11 +3,11 @@ import { Sequelize, Op } from "sequelize";
 import { HttpError } from "../utils/HttpError.js";
 
 const MIN_WORDS = 3;
-const MAX_WORDS = 5; // Impedisce a un utente di estrarre l'intero DB
+const MAX_WORDS = 5;
 
 export class WordController {
     
-    // Estrae N parole casuali dal database escludendo opzionalmente quelle appena mostrate (?exclude=a,b,c)
+    // Estrae un gruppo limitato di parole casuali, evitando quelle già mostrate quando possibile.
     static async getRandomWords(req, res, next) {
         try {
             const parsedCount = Number.parseInt(req.query.count, 10);
@@ -59,7 +59,7 @@ export class WordController {
         }
     }
 
-    // Permette di aggiungere nuove parole al dizionario (Solo Admin)
+    // Aggiunge una parola al dizionario dopo averne normalizzato il testo.
     static async addWord(req, res, next) {
         try {
             const { text, category, difficulty } = req.body;
@@ -88,7 +88,7 @@ export class WordController {
         }
     }
 
-    // Rimuove una parola dal dizionario tramite il suo testo (Solo Admin)
+    // Rimuove una parola dal dizionario usando il testo come identificativo.
     static async deleteWord(req, res, next) {
         try {
             const rawText = req.params.text;

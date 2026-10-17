@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 export function createModel(database) {
+    // Le credenziali sono persistite in forma hashata dal controller di autenticazione.
     database.define('User', {
         id: {
             type: DataTypes.INTEGER,
@@ -8,6 +9,7 @@ export function createModel(database) {
             autoIncrement: true
         },
         username: {
+            // Lo username è l'identificativo pubblico e deve essere univoco.
             type: DataTypes.STRING,
             allowNull: false,
             unique: true

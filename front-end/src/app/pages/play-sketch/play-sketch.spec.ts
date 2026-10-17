@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { SketchService } from '../../services/sketch/sketch.service';
 import { PlaySketchComponent } from './play-sketch';
 
+// Verifica caricamento dello sketch, tentativi e sblocco progressivo della soluzione.
 describe('PlaySketchComponent', () => {
   let fixture: ComponentFixture<PlaySketchComponent>;
   let component: PlaySketchComponent;
@@ -40,6 +41,7 @@ describe('PlaySketchComponent', () => {
     fixture.detectChanges();
   });
 
+  // La parola resta nascosta ma produce suggerimenti coerenti con la lunghezza.
   it('loads a sketch and computes hidden word hints', () => {
     expect(component.sketch()).toBe(sketch);
     component.currentGuess.set('cat');
@@ -48,6 +50,7 @@ describe('PlaySketchComponent', () => {
     expect(component.attemptSegments().length).toBe(10);
   });
 
+  // Un tentativo vicino aggiorna storico, feedback e contesto della partita.
   it('submits guesses, tracks close words and updates context', () => {
     component.currentGuess.set('gatto');
     component.onSubmitGuess();
@@ -57,6 +60,7 @@ describe('PlaySketchComponent', () => {
     expect(component.sketch()?.userContext?.attemptsCount).toBe(1);
   });
 
+  // ID non validi ed errori del servizio vengono trasformati in messaggi leggibili.
   it('reports invalid ids and request failures', () => {
     fixture.componentRef.setInput('id', 'not-a-number');
     fixture.detectChanges();
@@ -66,6 +70,7 @@ describe('PlaySketchComponent', () => {
     expect(component.errorMessage()).toBe('not found');
   });
 
+  // Il comando di ritorno chiude anche eventuali risultati aperti.
   it('navigates back to the gallery', () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -74,6 +79,7 @@ describe('PlaySketchComponent', () => {
     expect(component.isResultModalOpen()).toBe(false);
   });
 
+  // Il template consente di giocare ma blocca una parola già tentata.
   it('renders the playable sketch and blocks an already tried guess', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="sketch-detail-author"]')).toBeTruthy();

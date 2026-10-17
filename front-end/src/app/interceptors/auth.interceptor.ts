@@ -7,6 +7,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.token();
 
+  // Aggiunge il token solo alle richieste effettuate durante una sessione attiva.
   const requestToSend = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
