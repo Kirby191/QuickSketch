@@ -6,10 +6,8 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-Sequelize_ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Swagger](https://img.shields.io/badge/OpenAPI_3.1-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![Vitest](https://img.shields.io/badge/Vitest-73.4%25_Lines_Coverage-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-E2E_Tested-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
-
-
-Project of the **Web Technologies** course at **University of Naples Federico II** (A.A. 2025/2026).
 
 **QuickSketch** è un'applicazione web full-stack ispirata a *Pictionary*, in cui gli utenti possono sfidarsi disegnando una parola segreta in **60 secondi** o mettendo alla prova il proprio intuito per indovinare gli sketch della community entro un massimo di **10 tentativi**.
 
@@ -17,6 +15,7 @@ Progettata seguendo i principi dell'Ingegneria del Software (**Separation of Con
 
 - **Backend** (`back-end/`) — REST API stateless sviluppata con **Node.js**, **Express 5**, **Sequelize ORM**, **SQLite** e documentata secondo lo standard **OpenAPI 3.1 (Swagger UI)**.
 - **Frontend** (`front-end/`) — Single Page Application (SPA) reattiva basata su **Angular 22** (Standalone Components & Signals), **Tailwind CSS 4**, **SCSS** e **HTML5 Canvas** (`signature_pad` + algoritmo nativo Scanline Flood-Fill).
+- **Unit & Component Tests** (`front-end/src/**/*.spec.ts`) — Suite di test unitari e di integrazione eseguita con **Vitest** e **V8 Coverage** (`73,40%` Line Coverage e `71,77%` Statement Coverage).
 - **E2E Tests** (`front-end/tests/`) — Suite automatizzata di 10 test End-to-End isolati scritta con **Playwright** (Desktop & Mobile).
 
 ---
@@ -28,7 +27,7 @@ Il sistema adotta un'architettura **Client-Server disaccoppiata**. La logica di 
 La comunicazione avviene esclusivamente tramite **API RESTful stateless** in formato JSON su protocollo HTTP, autenticate mediante **JWT (JSON Web Token)** e protette da politiche **CORS** e meccanismi **Anti-Bruteforce**.
 
 ### 🌐 Il Front-End (`front-end/`)
-Sviluppata con **Angular 22**, l'interfaccia adotta un approccio *Mobile-First* scuro, fluido e privo di ricaricamenti di pagina. Tutte le rotte sono caricate in *Lazy Loading* (`loadComponent`) e lo stato applicativo è governato in modo reattivo tramite **Angular Signals**.
+Sviluppata con **Angular 22**, l'interfaccia adotta un approccio *Mobile-First* scuro, fluido e privo di ricaricamenti di pagina. Lo stato applicativo è governato in modo reattivo tramite **Angular Signals** e ogni unità logica (Componenti, Servizi, Guard e Interceptor) è affiancata dalla propria specifica di test unitario (`.spec.ts`).
 
 ```text
 front-end/
@@ -41,24 +40,24 @@ front-end/
     ├── models/
     │   └── api.models.ts               # Interfacce e contratti TypeScript
     ├── guards/
-    │   ├── auth.guard.ts               # Protezione rotte autenticate (/draw, /profile)
-    │   └── pending-drawing/            # CanDeactivate Guard contro la perdita accidentale del disegno
+    │   ├── auth/                       # Protezione rotte autenticate (/draw, /profile) + Unit Test
+    │   └── pending-drawing/            # CanDeactivate Guard contro la perdita del disegno + Unit Test
     ├── interceptors/
-    │   └── auth.interceptor.ts         # Iniezione automatica dell'header Authorization: Bearer <JWT>
+    │   └── auth.interceptor.ts         # Iniezione Bearer JWT e auto-logout su 401 + Unit Test
     ├── services/                       # Logica di comunicazione HTTP (SRP: 1 Service per dominio)
     │   ├── auth/                       # Gestione sessione utente, JWT e stato del modale Auth
-    │   ├── sketch/                     # CRUD Sketch e invio tentativi (Attempts)
-    │   ├── word/                       # Estrazione parole casuali e gestione dizionario Admin
-    │   ├── stats/                      # Recupero classifiche globali e metriche personali
+    │   ├── sketch/                     # CRUD Sketch paginato e invio tentativi (Attempts)
+    │   ├── word/                       # Estrazione parole casuali (con esclusione) e dizionario Admin
+    │   ├── stats/                      # Recupero classifiche globali, profili pubblici e metriche personali
     │   └── toast/                      # Sistema di notifiche push in-app non bloccanti
     ├── components/
     │   ├── auth-modal/                 # Modale Login/Signup con Password Strength Meter semaforico
     │   └── shared/                     # Componenti UI riutilizzabili (Navbar, Modal, Skeleton, EmptyState)
     └── pages/
-        ├── gallery/                    # Esplorazione pubblica, filtri reattivi per categoria/stato/autore
-        ├── draw/                       # Lavagna Canvas a 60s (Pennello, Secchiello Flood-Fill, Gomma, Undo/Redo)
-        ├── play-sketch/                # Arena dei 10 tentativi con indizio "Fuochino" e svelamento soluzione
-        ├── leaderboards/               # Doppia classifica (Migliori Giocatori e Migliori Disegnatori)
+        ├── gallery/                    # Esplorazione pubblica paginata e filtri reattivi
+        ├── draw/                       # Lavagna Canvas a 60s (Pennello, Flood-Fill, Gomma, Undo/Redo, Shortcuts)
+        ├── play-sketch/                # Arena dei 10 tentativi con indizio "Fuochino" persistente
+        ├── leaderboards/               # Doppia classifica con Modale Profilo Pubblico ispezionabile
         └── profile/                    # Dashboard statistiche personali e Pannello Dizionario Admin
 ```
 
@@ -71,10 +70,10 @@ back-end/
 ├── .env.example                        # Template delle variabili d'ambiente
 ├── controllers/                        # Logica di business e regole di dominio
 │   ├── AuthController.js               # Signup/Login, hashing BCrypt, emissione/verifica JWT
-│   ├── SketchController.js             # Creazione, filtri, RBAC delete e sanitizzazione Anti-Cheat della parola
+│   ├── SketchController.js             # Creazione, filtri, paginazione, RBAC delete e sanitizzazione Anti-Cheat
 │   ├── AttemptController.js            # Gestione dei 10 tentativi e calcolo Distanza di Levenshtein ("Fuochino")
-│   ├── WordController.js               # Estrazione randomica bilanciata e CRUD dizionario (Admin)
-│   └── StatsController.js              # Calcolo statistiche utente e classifiche globali
+│   ├── WordController.js               # Estrazione randomica con filtro d'esclusione e CRUD dizionario (Admin)
+│   └── StatsController.js              # Calcolo statistiche personali, profili pubblici e classifiche globali
 ├── middleware/
 │   ├── authMiddleware.js               # enforceAuthentication, enforceAdmin e optionalAuthentication
 │   ├── rateLimitMiddleware.js          # Scudo Anti-Bruteforce con backoff esponenziale (HTTP 429)
@@ -84,7 +83,7 @@ back-end/
 │   └── data/                           # Schemi delle tabelle e indici di performance
 ├── routes/                             # Definizione endpoint REST e annotazioni OpenAPI (@swagger)
 │   ├── authRouter.js                   # /api/auth (signup, login)
-│   ├── sketchRouter.js                 # /api/sketches (CRUD e /:id/attempts)
+│   ├── sketchRouter.js                 # /api/sketches (CRUD paginato e /:id/attempts)
 │   ├── wordRouter.js                   # /api/words (random e gestione Admin)
 │   └── statsRouter.js                  # /api/stats (leaderboards, me, users/:id)
 └── utils/
@@ -98,9 +97,9 @@ back-end/
 ## ⚡ Flusso di Gioco e Scelte Ingegneristiche
 
 1. **Autenticazione & Sicurezza (RBAC + Anti-Bruteforce):** Le password sono sottoposte a validazione di complessità e salvate tramite hashing **BCrypt**. Gli endpoint `/api/auth` sono protetti da un middleware anti-bruteforce che blocca i tentativi ripetuti restituendo `429 Too Many Requests` con header `Retry-After` e countdown visivo nel client.
-2. **Creazione Sketch in 60 Secondi:** L'utente autenticato estrae 3 parole casuali dal pool del server (`GET /api/words/random`), ne sceglie una e avvia il countdown di 60 secondi. La lavagna combina i tratti vettoriali fluidi di `signature_pad` con un algoritmo **Scanline Flood-Fill** su array tipizzati (`Uint32Array`) per il riempimento immediato delle aree chiuse, supportando **Undo/Redo** unificati (`Ctrl+Z` / `Ctrl+Y`).
-3. **Protezione Anti-Cheat Server-Side:** Il metodo `SketchController.formatSketchForUser` rimuove la parola segreta (`word: null`) dal payload JSON destinato ai visitatori o ai giocatori con partita ancora aperta, esponendo unicamente la lunghezza (`wordLength`). La parola viene rivelata dal server solo all'autore del disegno o a partita conclusa (`WON` o `LOST`).
-4. **Arena dei 10 Tentativi e Distanza di Levenshtein:** Ogni giocatore dispone di 10 tentativi per ciascuno sketch altrui (vincolo di integrità `UNIQUE(playerId, sketchId)`). In caso di errore, il backend calcola in tempo $O(N \cdot M)$ la **Distanza di Levenshtein** tra il tentativo e la soluzione: se la distanza è $\le 1$ (parole corte) o $\le 2$ (parole da 5+ lettere), fornisce l'indizio *"🔥 Fuochino! Ci sei andato molto vicino!"*.
+2. **Creazione Sketch in 60 Secondi:** L'utente autenticato estrae 3 parole casuali dal pool del server (`GET /api/words/random`, con parametro `exclude` per non riproporre le parole appena scartate), ne sceglie una e avvia il countdown di 60 secondi. La lavagna combina i tratti vettoriali fluidi di `signature_pad` con un algoritmo **Scanline Flood-Fill** su array tipizzati (`Uint32Array`), supportando **Undo/Redo** unificati (`Ctrl+Z` / `Ctrl+Y`) e scorciatoie da tastiera (`P`, `B`, `E`, `1`, `2`, `3`).
+3. **Protezione Anti-Cheat Server-Side e Paginazione:** Il metodo `SketchController.formatSketchForUser` rimuove la parola segreta (`word: null`) dal payload JSON destinato ai visitatori o ai giocatori con partita ancora aperta, esponendo unicamente la lunghezza (`wordLength`). La parola viene rivelata dal server solo all'autore del disegno o a partita conclusa (`WON` o `LOST`). La galleria supporta inoltre la paginazione lato server (`?limit=24&offset=0`).
+4. **Arena dei 10 Tentativi e Distanza di Levenshtein:** Ogni giocatore dispone di 10 tentativi per ciascuno sketch altrui (vincolo di integrità `UNIQUE(playerId, sketchId)`). In caso di errore, il backend calcola la **Distanza di Levenshtein** tra il tentativo e la soluzione: se la distanza è $\le 1$ (parole corte) o $\le 2$ (parole da 5+ lettere), fornisce l'indizio persistente *"🔥 Fuochino! Ci sei andato molto vicino!"*.
 
 ---
 
@@ -131,7 +130,7 @@ git --version
 ### 1. Clona il repository e imposta il terminale sulla cartella iniziale
 
 ```bash
-git clone https://github.com/Kirby191/QuickSketch.git (Opzionale)
+git clone [https://github.com/Kirby191/QuickSketch.git](https://github.com/Kirby191/QuickSketch.git)
 cd QuickSketch
 ```
 
@@ -210,11 +209,39 @@ Il comando avvia il dev server di Angular. Apri il browser all'indirizzo **`http
 
 ---
 
-### 4. End-to-End Tests (`Playwright`)
+## 🧪 Testing & Code Coverage
 
-Il progetto include una suite di **10 test End-to-End isolati** (in `front-end/tests/quicksketch.spec.ts`) che verificano l'intero sistema su viewport Desktop (`Desktop Chrome`) e Mobile (`Galaxy S20`).
+La qualità del software è verificata attraverso una strategia di testing su due livelli: **Unit & Component Testing** (con **Vitest** e **V8 Coverage**) ed **End-to-End Testing** (con **Playwright**).
 
-#### 4.1 Installa i browser di Playwright
+### 4. Unit & Component Test Suite (`Vitest`)
+
+L'applicazione front-end include una test suite completa (`14` file `.spec.ts`) che testa in isolamento mediante *Test Doubles* e `HttpTestingController` tutti i **Servizi di dominio**, le **Route Guards** (`authGuard`, `pendingDrawingGuard`), l'**HTTP Interceptor** (`authInterceptor`), i **Componenti condivisi** e tutte le **Pagine della SPA**.
+
+#### 4.1 Esegui i test unitari e genera il report di Coverage
+
+Dalla cartella `front-end/`:
+
+```bash
+cd front-end
+npx ng test --watch=false --coverage
+```
+
+#### 4.2 Metriche di Code Coverage Raggiunte
+
+| Metrica | Copertura Attuale |
+| :--- | :--- |
+| **Statements** | **71,77%** |
+| **Branches** | **62,14%** |
+| **Functions** | **60,27%** |
+| **Lines** | **73,40%** |
+
+---
+
+### 5. End-to-End Tests (`Playwright`)
+
+Oltre ai test unitari, il progetto include una suite di **10 test End-to-End isolati** (in `front-end/tests/quicksketch.spec.ts`) che verificano l'integrazione full-stack su viewport Desktop (`Desktop Chrome`) e Mobile (`Galaxy S20`).
+
+#### 5.1 Installa i browser di Playwright
 
 Dalla cartella `front-end/`, scarica i binari dei browser richiesti da Playwright (operazione necessaria solo la prima volta):
 
@@ -223,7 +250,7 @@ cd front-end
 npx playwright install
 ```
 
-#### 4.2 Esegui i test E2E
+#### 5.2 Esegui i test E2E
 
 ```bash
 npx playwright test
@@ -240,4 +267,7 @@ npx playwright show-report
 ---
 
 ## 👨‍💻 Autore
+
+Progetto realizzato nell'ambito dell'insegnamento di **Web Technologies (Tecnologie Web)** (A.A. 2025/2026) presso l'**Università degli Studi di Napoli Federico II**.
+
 - **Sviluppatore Software:** Vittorio Emanuele Testa

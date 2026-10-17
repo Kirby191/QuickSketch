@@ -14,24 +14,32 @@ export class AttemptController {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
 
-        const matrix = Array.from({ length: a.length + 1 }, () =>
-            new Array(b.length + 1).fill(0)
-        );
+        // Manteniamo la stringa più corta nel vettore per usare spazio O(min(N,M)).
+        const [shortStr, longStr] = a.length <= b.length ? [a, b] : [b, a];
+        const shortLen = shortStr.length;
+        const longLen = longStr.length;
 
-        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+        const row = new Uint16Array(shortLen + 1);
+        for (let j = 0; j <= shortLen; j++) row[j] = j;
 
-        for (let i = 1; i <= a.length; i++) {
-            for (let j = 1; j <= b.length; j++) {
-                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1,      // Cancellazione
-                    matrix[i][j - 1] + 1,      // Inserimento
-                    matrix[i - 1][j - 1] + cost // Sostituzione
+        for (let i = 1; i <= longLen; i++) {
+            let prevDiag = row[0];
+            row[0] = i;
+            const longChar = longStr[i - 1];
+
+            for (let j = 1; j <= shortLen; j++) {
+                const temp = row[j];
+                const cost = longChar === shortStr[j - 1] ? 0 : 1;
+                row[j] = Math.min(
+                    row[j] + 1,       // Cancellazione
+                    row[j - 1] + 1,   // Inserimento
+                    prevDiag + cost   // Sostituzione
                 );
+                prevDiag = temp;
             }
         }
-        return matrix[a.length][b.length];
+
+        return row[shortLen];
     }
 
     /**
@@ -39,10 +47,16 @@ export class AttemptController {
      */
     static isGuessClose(guess, target) {
         if (guess === target) return false;
+        const maxAllowedDistance = target.length <= 4 ? 1 : 2;
+
+        // La distanza è almeno pari alla differenza tra le lunghezze.
+        if (Math.abs(guess.length - target.length) > maxAllowedDistance) {
+            return false;
+        }
+
         const distance = AttemptController.levenshteinDistance(guess, target);
         // Per parole corte (<= 4 lettere) tolleriamo 1 carattere di differenza;
         // per parole da 5+ lettere tolleriamo fino a 2 caratteri di differenza.
-        const maxAllowedDistance = target.length <= 4 ? 1 : 2;
         return distance > 0 && distance <= maxAllowedDistance;
     }
 

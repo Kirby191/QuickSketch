@@ -17,6 +17,10 @@ function getClientKey(req) {
 }
 
 export function authBruteforceProtection(req, res, next) {
+    if (process.env.QUICKSKETCH_E2E === 'true' && req.path.includes('signup')) {
+        return next();
+    }
+
     const key = getClientKey(req);
     const now = Date.now();
 

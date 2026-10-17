@@ -1,12 +1,13 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth/auth.guard';
 import { pendingDrawingGuard } from './guards/pending-drawing/pending-drawing.guard';
+import { GalleryComponent } from './pages/gallery/gallery';
 
 export const routes: Routes = [
   {
+    // Eager loaded component per la galleria.
     path: '',
-    loadComponent: () =>
-      import('./pages/gallery/gallery').then((m) => m.GalleryComponent),
+    component: GalleryComponent,
     title: 'QuickSketch — Galleria Sketch',
   },
   {

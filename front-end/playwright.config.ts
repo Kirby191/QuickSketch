@@ -30,6 +30,7 @@ export default defineConfig({
       url: 'http://localhost:3000/api/sketches',
       reuseExistingServer: true,
       timeout: 30000,
+      env: { QUICKSKETCH_E2E: 'true' },
     },
     {
       command: 'npm start',

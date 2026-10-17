@@ -24,12 +24,18 @@ export function createModel(database) {
             allowNull: false,
             defaultValue: '[]'
         }
-    }, {
-        // Garantisce che esista al massimo 1 record Attempt per ogni coppia (playerId, sketchId)
+}, {
+        // Garantisce al massimo 1 record Attempt per (playerId, sketchId) e indicizza le JOIN per sketchId
         indexes: [
             {
                 unique: true,
                 fields: ['playerId', 'sketchId']
+            },
+            {
+                fields: ['sketchId']
+            },
+            {
+                fields: ['status']
             }
         ]
     });

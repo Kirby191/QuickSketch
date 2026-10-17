@@ -68,9 +68,14 @@ Sketch.belongsTo(Word, {
     foreignKey: { name: 'wordId', allowNull: true }, 
     as: 'wordRef' });
 
-// 4. Sincronizzazione e popolamento
+// 4. Sincronizzazione, ottimizzazione WAL e popolamento in back-end/models/Database.js
 export async function initDatabase() {
     try {
+        // Ottimizzazione SQLite: modalità Write-Ahead Logging (WAL) per concorrenza I/O e velocità di scrittura
+        await database.query("PRAGMA journal_mode = WAL;");
+        await database.query("PRAGMA synchronous = NORMAL;");
+        await database.query("PRAGMA foreign_keys = ON;");
+
         await database.sync();
         console.log("Database synchronized.");
         await seedDatabase();

@@ -146,9 +146,6 @@ export class SketchController {
                 parsedOffset = rawOffset;
             }
 
-            // Conteggio totale per informare il client se esistono altre pagine
-            const totalCount = await Sketch.count({ where: whereClause });
-
             const sketches = await Sketch.findAll({
                 where: whereClause,
                 include: [
@@ -164,6 +161,11 @@ export class SketchController {
                 limit: parsedLimit,
                 offset: parsedOffset
             });
+
+            // Evitiamo SELECT COUNT(*) quando la prima pagina contiene già tutti i risultati.
+            const totalCount = (parsedOffset === 0 && sketches.length < parsedLimit)
+                ? sketches.length
+                : await Sketch.count({ where: whereClause });
 
             const formattedSketches = sketches.map(sketch =>
                 SketchController.formatSketchForUser(sketch, req.userId || null)

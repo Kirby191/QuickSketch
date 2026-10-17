@@ -15,29 +15,31 @@ export class StatsController {
             throw new HttpError(404, "Utente non trovato.");
         }
 
-        // 1. Disegni realizzati dall'utente (escludiamo imageData per leggerezza)
-        const userSketches = await Sketch.findAll({
-            where: { authorId: userId },
-            attributes: ['id', 'word', 'category', 'drawingTime', 'createdAt'],
-            include: [
-                { model: Attempt, as: 'attempts', attributes: ['status', 'attemptsCount'] }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
-
-        // 2. Tentativi/Partite giocate dall'utente sugli sketch altrui
-        const userAttempts = await Attempt.findAll({
-            where: { playerId: userId },
-            include: [
-                {
-                    model: Sketch,
-                    as: 'sketch',
-                    attributes: ['id', 'category', 'word', 'authorId', 'createdAt'],
-                    include: [{ model: User, as: 'author', attributes: ['id', 'username'] }]
-                }
-            ],
-            order: [['updatedAt', 'DESC']]
-        });
+        // Carichiamo in parallelo i disegni creati e le sfide giocate dall'utente.
+        const [userSketches, userAttempts] = await Promise.all([
+            // 1. Disegni realizzati dall'utente (escludiamo imageData per leggerezza)
+            Sketch.findAll({
+                where: { authorId: userId },
+                attributes: ['id', 'word', 'category', 'drawingTime', 'createdAt'],
+                include: [
+                    { model: Attempt, as: 'attempts', attributes: ['status', 'attemptsCount'] }
+                ],
+                order: [['createdAt', 'DESC']]
+            }),
+            // 2. Tentativi/Partite giocate dall'utente sugli sketch altrui
+            Attempt.findAll({
+                where: { playerId: userId },
+                include: [
+                    {
+                        model: Sketch,
+                        as: 'sketch',
+                        attributes: ['id', 'category', 'word', 'authorId', 'createdAt'],
+                        include: [{ model: User, as: 'author', attributes: ['id', 'username'] }]
+                    }
+                ],
+                order: [['updatedAt', 'DESC']]
+            })
+        ]);
 
         // --- CALCOLO STATISTICHE GIOCATORE (Indovinare) ---
         const wonAttempts = userAttempts.filter(a => a.status === 'WON');
