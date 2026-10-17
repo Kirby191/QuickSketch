@@ -1,7 +1,5 @@
 # 🎨 QuickSketch
 
-Project of the **Web Technologies** course at **University of Naples Federico II** (A.A. 2025/2026).
-
 ![Node.js](https://img.shields.io/badge/Node.js-LTS-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=for-the-badge&logo=angular&logoColor=white)
@@ -9,6 +7,9 @@ Project of the **Web Technologies** course at **University of Naples Federico II
 ![SQLite](https://img.shields.io/badge/SQLite-Sequelize_ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Swagger](https://img.shields.io/badge/OpenAPI_3.1-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 ![Playwright](https://img.shields.io/badge/Playwright-E2E_Tested-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+
+
+Project of the **Web Technologies** course at **University of Naples Federico II** (A.A. 2025/2026).
 
 **QuickSketch** è un'applicazione web full-stack ispirata a *Pictionary*, in cui gli utenti possono sfidarsi disegnando una parola segreta in **60 secondi** o mettendo alla prova il proprio intuito per indovinare gli sketch della community entro un massimo di **10 tentativi**.
 
@@ -22,7 +23,7 @@ Progettata seguendo i principi dell'Ingegneria del Software (**Separation of Con
 
 ## 🏗️ Architettura del Sistema
 
-Il sistema adotta una moderna architettura **Client-Server disaccoppiata**. La logica di business, la sicurezza anti-cheat (oscuramento server-side della parola segreta), la validazione dei tentativi e la persistenza risiedono nel Back-End, mentre l'esperienza utente, il tavolo da disegno interattivo e la reattività risiedono nella SPA Angular.
+Il sistema adotta un'architettura **Client-Server disaccoppiata**. La logica di business, la sicurezza anti-cheat (oscuramento server-side della parola segreta), la validazione dei tentativi e la persistenza risiedono nel Back-End, mentre l'esperienza utente, il tavolo da disegno interattivo e la reattività risiedono nella SPA Angular.
 
 La comunicazione avviene esclusivamente tramite **API RESTful stateless** in formato JSON su protocollo HTTP, autenticate mediante **JWT (JSON Web Token)** e protette da politiche **CORS** e meccanismi **Anti-Bruteforce**.
 
@@ -239,7 +240,4 @@ npx playwright show-report
 ---
 
 ## 👨‍💻 Autore
-
-Progetto realizzato nell'ambito dell'insegnamento di **Web Technologies (Tecnologie Web)** (A.A. 2025/2026) presso l'**Università degli Studi di Napoli Federico II**.
-
 - **Sviluppatore Software:** Vittorio Emanuele Testa
