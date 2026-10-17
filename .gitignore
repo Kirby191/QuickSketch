@@ -34,8 +34,11 @@ front-end/coverage/
 testem.log
 
 # Report e artefatti dei test End-to-End (Playwright)
-playwright-report/
-test-results/
+front-end/test-results/
+front-end/playwright-report/
+front-end/blob-report/
+front-end/playwright/.cache/
+front-end/playwright/.auth/
 
 # ==========================================
 # REGOLE BACK-END (Express & SQLite)
