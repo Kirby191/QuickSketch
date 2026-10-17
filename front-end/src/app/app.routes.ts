@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
+import { authGuard } from './guards/auth/auth.guard';
 import { pendingDrawingGuard } from './guards/pending-drawing/pending-drawing.guard';
 
 export const routes: Routes = [

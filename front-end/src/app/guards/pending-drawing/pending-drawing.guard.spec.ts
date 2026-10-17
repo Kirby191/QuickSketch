@@ -1,17 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-import { CanDeactivateFn } from '@angular/router';
-import { pendingDrawingGuard } from './pending-drawing.guard';
+import { signal } from '@angular/core';
 import { DrawComponent } from '../../pages/draw/draw';
+import { pendingDrawingGuard } from './pending-drawing.guard';
 
 describe('pendingDrawingGuard', () => {
-  const executeGuard: CanDeactivateFn<DrawComponent> = (...guardParameters) =>
-    TestBed.runInInjectionContext(() => pendingDrawingGuard(...guardParameters));
+  const execute = (component: Partial<DrawComponent>) =>
+    TestBed.runInInjectionContext(() => pendingDrawingGuard(component as DrawComponent, {} as never, {} as never, {} as never));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(() => TestBed.configureTestingModule({}));
+
+  it('allows navigation when there is no active drawing', () => {
+    expect(execute({ phase: signal('SELECT_WORD'), strokesCount: signal(0), timeLeft: signal(60) })).toBe(true);
   });
 
-  it('should be created', () => {
-    expect(executeGuard).toBeTruthy();
+  it('asks for confirmation only for an active non-expired drawing', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    expect(execute({ phase: signal('DRAWING'), strokesCount: signal(2), timeLeft: signal(30) })).toBe(false);
+    expect(window.confirm).toHaveBeenCalled();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    expect(execute({ phase: signal('DRAWING'), strokesCount: signal(2), timeLeft: signal(30) })).toBe(true);
   });
 });
