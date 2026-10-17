@@ -113,32 +113,67 @@ export class SketchController {
         }
     }
 
-    // 2. GET /api/sketches - Esplora la raccolta degli sketch (Accessibile a tutti, anche ospiti)
+// 2. GET /api/sketches - Esplora la raccolta degli sketch (con filtri e paginazione opzionale)
     static async getAllSketches(req, res, next) {
         try {
-            const { category, authorId } = req.query;
+            const { category, authorId, limit, offset, size, page } = req.query;
             const whereClause = {};
 
             // Filtri opzionali tramite query string (es. /api/sketches?category=Animali)
-            if (category) {
+            if (category && category.trim() !== '' && category.trim() !== 'Tutte') {
                 whereClause.category = category.trim();
             }
             if (authorId && !Number.isNaN(Number.parseInt(authorId, 10))) {
                 whereClause.authorId = Number.parseInt(authorId, 10);
             }
 
+            // Gestione Paginazione: supporta sia (?limit=24&offset=0) sia (?size=24&page=1)
+            const DEFAULT_LIMIT = 24;
+            const MAX_LIMIT = 100;
+
+            const rawLimit = Number.parseInt(size ?? limit, 10);
+            const parsedLimit = (!Number.isNaN(rawLimit) && rawLimit >= 1)
+                ? Math.min(rawLimit, MAX_LIMIT)
+                : DEFAULT_LIMIT;
+
+            let parsedOffset = 0;
+            const rawPage = Number.parseInt(page, 10);
+            const rawOffset = Number.parseInt(offset, 10);
+
+            if (!Number.isNaN(rawPage) && rawPage >= 1) {
+                parsedOffset = (rawPage - 1) * parsedLimit;
+            } else if (!Number.isNaN(rawOffset) && rawOffset >= 0) {
+                parsedOffset = rawOffset;
+            }
+
+            // Conteggio totale per informare il client se esistono altre pagine
+            const totalCount = await Sketch.count({ where: whereClause });
+
             const sketches = await Sketch.findAll({
                 where: whereClause,
                 include: [
                     { model: User, as: 'author', attributes: ['id', 'username'] },
-                    { model: Attempt, as: 'attempts', attributes: ['playerId', 'status', 'attemptsCount'] }
+                    {
+                        model: Attempt,
+                        as: 'attempts',
+                        attributes: ['playerId', 'status', 'attemptsCount'],
+                        separate: true // Evita che LIMIT/OFFSET vengano falsati dalla JOIN 1:N
+                    }
                 ],
-                order: [['createdAt', 'DESC']] // Dal più recente al meno recente
+                order: [['createdAt', 'DESC']],
+                limit: parsedLimit,
+                offset: parsedOffset
             });
 
             const formattedSketches = sketches.map(sketch =>
                 SketchController.formatSketchForUser(sketch, req.userId || null)
             );
+
+            // Esponiamo i metadati di paginazione negli header HTTP (con CORS Access-Control-Expose-Headers)
+            const hasMore = (parsedOffset + formattedSketches.length) < totalCount;
+            res.setHeader('X-Total-Count', String(totalCount));
+            res.setHeader('X-Has-More', String(hasMore));
+            res.setHeader('Access-Control-Expose-Headers', 'X-Total-Count, X-Has-More');
 
             res.json(formattedSketches);
         } catch (err) {

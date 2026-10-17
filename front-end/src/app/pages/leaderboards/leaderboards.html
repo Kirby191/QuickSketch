@@ -9,7 +9,7 @@
         Classifiche QuickSketch
       </h1>
       <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
-        Scopri chi ha l'intuito più rapido nell'indovinare le parole segrete e chi realizza gli sketch più chiari ed efficaci della community.
+        Scopri chi ha l'intuito più rapido nell'indovinare le parole segrete e chi realizza gli sketch più chiari ed efficaci della community. Clicca su un utente per esplorarne il profilo pubblico!
       </p>
     </div>
 
@@ -67,7 +67,6 @@
   <!-- 3. SKELETON LOADING DEDICATO ALLE CLASSIFICHE -->
   @if (isLoading()) {
     <div data-testid="leaderboard-skeleton" class="space-y-6 animate-pulse" aria-busy="true">
-      <!-- Skeleton Podio Top 3 -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         @for (item of [1, 2, 3]; track item) {
           <div class="h-40 rounded-2xl bg-slate-900 border border-slate-800 p-6 flex flex-col justify-between">
@@ -81,7 +80,6 @@
         }
       </div>
 
-      <!-- Skeleton Tabella Posizioni -->
       <div class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden divide-y divide-slate-800">
         @for (row of [1, 2, 3, 4, 5]; track row) {
           <div class="p-4 sm:px-6 flex items-center justify-between">
@@ -110,12 +108,13 @@
         (actionClicked)="goToGallery()"
       />
     } @else {
-      <!-- Podio Top 3 Giocatori -->
+      <!-- Podio Top 3 Giocatori (Cliccabili per aprire il profilo pubblico) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         @for (player of topThreePlayers(); track player.userId) {
           <div
             [attr.data-testid]="'podium-player-' + player.rank"
-            class="relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4"
+            (click)="openPublicProfile(player.userId)"
+            class="group relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4 cursor-pointer hover:border-indigo-500/60"
             [class]="
               player.rank === 1
                 ? 'bg-gradient-to-br from-amber-500/15 via-slate-900 to-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5'
@@ -133,7 +132,7 @@
 
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="text-lg font-extrabold text-white truncate">
+                <h3 class="text-lg font-extrabold text-white group-hover:text-indigo-400 transition-colors truncate">
                   {{ player.username }}
                 </h3>
                 @if (isCurrentUser(player.userId)) {
@@ -171,7 +170,9 @@
               @for (player of bestPlayers(); track player.userId) {
                 <tr
                   [attr.data-testid]="'player-row-' + player.userId"
-                  class="transition-colors"
+                  (click)="openPublicProfile(player.userId)"
+                  title="Clicca per visualizzare le statistiche di {{ player.username }}"
+                  class="transition-colors cursor-pointer group"
                   [class]="
                     isCurrentUser(player.userId)
                       ? 'bg-indigo-600/10 hover:bg-indigo-600/15'
@@ -183,7 +184,7 @@
                   </td>
                   <td class="py-4 px-4 sm:px-6 font-bold text-white whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                      <span>{{ player.username }}</span>
+                      <span class="group-hover:text-indigo-400 group-hover:underline transition-colors">{{ player.username }}</span>
                       @if (isCurrentUser(player.userId)) {
                         <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
                           Tu
@@ -225,12 +226,13 @@
         (actionClicked)="goToDraw()"
       />
     } @else {
-      <!-- Podio Top 3 Disegnatori -->
+      <!-- Podio Top 3 Disegnatori (Cliccabili per aprire il profilo pubblico) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         @for (artist of topThreeArtists(); track artist.userId) {
           <div
             [attr.data-testid]="'podium-artist-' + artist.rank"
-            class="relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4"
+            (click)="openPublicProfile(artist.userId)"
+            class="group relative rounded-2xl p-6 border transition-all flex flex-col justify-between gap-4 cursor-pointer hover:border-indigo-500/60"
             [class]="
               artist.rank === 1
                 ? 'bg-gradient-to-br from-amber-500/15 via-slate-900 to-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5'
@@ -248,7 +250,7 @@
 
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="text-lg font-extrabold text-white truncate">
+                <h3 class="text-lg font-extrabold text-white group-hover:text-indigo-400 transition-colors truncate">
                   {{ artist.username }}
                 </h3>
                 @if (isCurrentUser(artist.userId)) {
@@ -286,7 +288,9 @@
               @for (artist of bestArtists(); track artist.userId) {
                 <tr
                   [attr.data-testid]="'artist-row-' + artist.userId"
-                  class="transition-colors"
+                  (click)="openPublicProfile(artist.userId)"
+                  title="Clicca per visualizzare le statistiche di {{ artist.username }}"
+                  class="transition-colors cursor-pointer group"
                   [class]="
                     isCurrentUser(artist.userId)
                       ? 'bg-indigo-600/10 hover:bg-indigo-600/15'
@@ -298,7 +302,7 @@
                   </td>
                   <td class="py-4 px-4 sm:px-6 font-bold text-white whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                      <span>{{ artist.username }}</span>
+                      <span class="group-hover:text-indigo-400 group-hover:underline transition-colors">{{ artist.username }}</span>
                       @if (isCurrentUser(artist.userId)) {
                         <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
                           Tu
@@ -329,3 +333,84 @@
     }
   }
 </section>
+
+<!-- ========================================================= -->
+<!-- MODALE PROFILO PUBBLICO UTENTE (GET /api/stats/users/:id) -->
+<!-- ========================================================= -->
+<app-modal
+  [isOpen]="isUserModalOpen()"
+  [title]="selectedUserStats() ? 'Profilo Pubblico di ' + selectedUserStats()!.user.username : 'Profilo Utente'"
+  maxWidthClass="max-w-2xl"
+  (closed)="closePublicProfile()"
+>
+  @if (isLoadingUserStats()) {
+    <div class="space-y-4 animate-pulse py-2">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-20 rounded-xl bg-slate-800"></div>
+        }
+      </div>
+      <div class="h-32 rounded-xl bg-slate-800"></div>
+    </div>
+  } @else if (userStatsError()) {
+    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm text-center">
+      ⚠️ {{ userStatsError() }}
+    </div>
+  } @else if (selectedUserStats(); as uStats) {
+    <div data-testid="public-profile-modal-content" class="space-y-5">
+      <!-- 4 Metriche Sintetiche -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Sketch Creati</span>
+          <strong class="text-xl font-extrabold text-white">{{ uStats.artistStats.sketchesCreatedCount }}</strong>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 text-center">
+          <span class="text-[11px] font-bold uppercase text-emerald-300 block">Indovinate</span>
+          <strong class="text-xl font-extrabold text-emerald-400">{{ uStats.playerStats.wordsGuessedCount }}</strong>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-indigo-500/30 text-center">
+          <span class="text-[11px] font-bold uppercase text-indigo-300 block">Chiarezza</span>
+          <strong class="text-xl font-extrabold text-indigo-300">{{ uStats.artistStats.artistSuccessRate }}%</strong>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Media Tent.</span>
+          <strong class="text-xl font-extrabold text-white">{{ uStats.playerStats.avgAttemptsPerWin }}</strong>
+        </div>
+      </div>
+
+      <!-- Ultime Sfide Giocate da questo utente -->
+      @if (uStats.recentGames.length > 0) {
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Ultime Sfide Affrontate ({{ uStats.recentGames.length }})
+          </h4>
+          <div class="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-950 max-h-52 overflow-y-auto">
+            @for (g of uStats.recentGames; track g.attemptId) {
+              <div
+                (click)="openSketchFromProfile(g.sketchId)"
+                class="p-3 flex items-center justify-between gap-2 hover:bg-slate-800/60 transition-colors cursor-pointer text-xs"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 font-bold">
+                    {{ g.category }}
+                  </span>
+                  <span class="text-slate-300">di <strong>{{ g.author }}</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-400">{{ g.attemptsCount }}/10 tent.</span>
+                  @if (g.status === 'WON') {
+                    <span class="text-emerald-400 font-bold">🏆 Vinta</span>
+                  } @else if (g.status === 'LOST') {
+                    <span class="text-rose-400 font-bold">❌ Persa</span>
+                  } @else {
+                    <span class="text-amber-300 font-bold">⏳ In corso</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</app-modal>

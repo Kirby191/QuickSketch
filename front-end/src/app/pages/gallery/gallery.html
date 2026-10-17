@@ -313,6 +313,25 @@
         </article>
       }
     </div>
+
+    <!-- Pulsante Paginazione Incrementale (visibile se ci sono altri sketch oltre i primi 24) -->
+    @if (hasMorePages()) {
+      <div class="pt-4 flex justify-center">
+        <button
+          type="button"
+          data-testid="load-more-sketches-btn"
+          [disabled]="isLoadingMore()"
+          (click)="loadMoreSketches()"
+          class="min-h-12 px-8 py-3 rounded-2xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-lg transition-all cursor-pointer disabled:opacity-50"
+        >
+          @if (isLoadingMore()) {
+            <span>Caricamento altri sketch...</span>
+          } @else {
+            <span>⬇️ Carica altri Sketch</span>
+          }
+        </button>
+      </div>
+    }
   }
 </section>
 

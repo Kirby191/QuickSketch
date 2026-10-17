@@ -9,7 +9,7 @@ export const sketchRouter = express.Router();
  * @swagger
  * /api/sketches:
  *   get:
- *     summary: Esplora la raccolta di tutti gli sketch (pubblica, arricchita se loggati)
+ *     summary: Esplora la raccolta di tutti gli sketch (pubblica, con filtri e paginazione)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -23,6 +23,18 @@ export const sketchRouter = express.Router();
  *         schema:
  *           type: integer
  *         description: Filtra gli sketch di uno specifico autore
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 24
+ *         description: Numero massimo di sketch da restituire per pagina (max 100)
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Numero di sketch da saltare (per la paginazione)
  *     responses:
  *       200:
  *         description: Lista degli sketch pubblicati

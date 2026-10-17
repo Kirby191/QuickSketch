@@ -1,5 +1,5 @@
 import { Word } from "../models/Database.js";
-import { Sequelize } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import { HttpError } from "../utils/HttpError.js";
 
 const MIN_WORDS = 3;
@@ -7,23 +7,51 @@ const MAX_WORDS = 5; // Impedisce a un utente di estrarre l'intero DB
 
 export class WordController {
     
-    // Estrae N parole casuali dal database (garantendo sempre tra MIN_WORDS e MAX_WORDS)
+    // Estrae N parole casuali dal database escludendo opzionalmente quelle appena mostrate (?exclude=a,b,c)
     static async getRandomWords(req, res, next) {
         try {
             const parsedCount = Number.parseInt(req.query.count, 10);
 
-            // Se non è un numero valido (NaN) o è minore di 3, usa sempre 3 (MIN_WORDS).
-            // Se supera MAX_WORDS, lo limita a MAX_WORDS.
             let count = MIN_WORDS;
             if (!Number.isNaN(parsedCount) && parsedCount >= MIN_WORDS) {
                 count = Math.min(parsedCount, MAX_WORDS);
             }
 
-            const randomWords = await Word.findAll({
+            // Parsing sicuro delle parole da escludere (es. ?exclude=gatto,pizza,castello)
+            const rawExclude = typeof req.query.exclude === 'string' ? req.query.exclude : '';
+            const excludedList = rawExclude
+                .split(',')
+                .map(w => w.trim().toLowerCase())
+                .filter(w => w.length > 0);
+
+            const whereClause = excludedList.length > 0
+                ? { text: { [Op.notIn]: excludedList } }
+                : {};
+
+            let randomWords = await Word.findAll({
+                where: whereClause,
                 order: Sequelize.literal('RANDOM()'),
                 limit: count,
                 attributes: ['id', 'text', 'category', 'difficulty']
             });
+
+            // Fallback anti-stallo: se il DB ha poche parole e dopo l'esclusione ne restano meno di 'count',
+            // completiamo la terna pescando tra le parole restanti così da restituire sempre 'count' parole.
+            if (randomWords.length < count && excludedList.length > 0) {
+                const alreadyPickedIds = randomWords.map(w => w.id);
+                const missingCount = count - randomWords.length;
+
+                const fallbackWords = await Word.findAll({
+                    where: alreadyPickedIds.length > 0
+                        ? { id: { [Op.notIn]: alreadyPickedIds } }
+                        : {},
+                    order: Sequelize.literal('RANDOM()'),
+                    limit: missingCount,
+                    attributes: ['id', 'text', 'category', 'difficulty']
+                });
+
+                randomWords = [...randomWords, ...fallbackWords];
+            }
 
             res.json(randomWords);
         } catch (err) {
@@ -31,16 +59,15 @@ export class WordController {
         }
     }
 
-    // Permette di aggiungere nuove parole al dizionario (utile per l'amministratore o per il seeding)
+    // Permette di aggiungere nuove parole al dizionario (Solo Admin)
     static async addWord(req, res, next) {
         try {
             const { text, category, difficulty } = req.body;
 
-            if (!text) {
+            if (!text || typeof text !== 'string' || text.trim().length === 0) {
                 throw new HttpError(400, "Il testo della parola è obbligatorio.");
             }
 
-            // Normalizziamo la parola (tutto minuscolo e senza spazi extra)
             const normalizedText = text.trim().toLowerCase();
 
             const newWord = await Word.create({
@@ -54,9 +81,8 @@ export class WordController {
                 word: newWord 
             });
         } catch (err) {
-            // Se la parola esiste già, Sequelize solleverà un errore per violazione del vincolo 'unique'
             if (err.name === 'SequelizeUniqueConstraintError') {
-                throw new HttpError(409, "Questa parola è già presente nel dizionario.");
+                return next(new HttpError(409, "Questa parola è già presente nel dizionario."));
             }
             next(err);
         }
@@ -66,7 +92,7 @@ export class WordController {
     static async deleteWord(req, res, next) {
         try {
             const rawText = req.params.text;
-            if (!rawText) {
+            if (!rawText || rawText.trim().length === 0) {
                 throw new HttpError(400, "Specifica la parola da eliminare.");
             }
 
@@ -77,7 +103,7 @@ export class WordController {
                 throw new HttpError(404, `La parola '${normalizedText}' non esiste nel dizionario.`);
             }
 
-            await wordToDelete.destroy(); // Elimina l'entità dal DB
+            await wordToDelete.destroy();
 
             res.json({
                 message: `Parola '${normalizedText}' rimossa con successo dal pool.`

@@ -11,9 +11,12 @@ export class WordService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = API_CONFIG.endpoints.words;
 
-  // Estrae N parole casuali per il disegnatore (default: 3)
-  getRandomWords(count = 3): Observable<WordItem[]> {
-    const params = new HttpParams().set('count', count.toString());
+  // Estrae N parole casuali per il disegnatore, escludendo opzionalmente quelle appena viste
+  getRandomWords(count = 3, excludeWords: string[] = []): Observable<WordItem[]> {
+    let params = new HttpParams().set('count', count.toString());
+    if (excludeWords.length > 0) {
+      params = params.set('exclude', excludeWords.join(','));
+    }
     return this.http.get<WordItem[]>(`${this.apiUrl}/random`, { params });
   }
 

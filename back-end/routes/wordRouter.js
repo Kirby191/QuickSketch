@@ -18,13 +18,18 @@ export const wordRouter = express.Router();
  *           type: integer
  *           default: 3
  *         description: Numero di parole da estrarre
+ *       - in: query
+ *         name: exclude
+ *         schema:
+ *           type: string
+ *         example: gatto,pizza,castello
+ *         description: Lista separata da virgole di parole da escludere dall'estrazione
  *     responses:
  *       200:
  *         description: Array di parole casuali
  *       401:
  *         description: Non autorizzato (token mancante o non valido)
  */
-// GET /api/words/random
 wordRouter.get("/random", enforceAuthentication, WordController.getRandomWords);
 
 /**

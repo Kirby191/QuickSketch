@@ -104,6 +104,13 @@ export class DrawComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
     if (this.phase() !== 'DRAWING') return;
+
+    // Ignora le scorciatoie se il focus si trova accidentalmente in un campo di input
+    const targetTag = (event.target as HTMLElement)?.tagName?.toLowerCase();
+    if (targetTag === 'input' || targetTag === 'textarea' || targetTag === 'select') {
+      return;
+    }
+
     const key = event.key.toLowerCase();
 
     if ((event.ctrlKey || event.metaKey) && key === 'z') {
@@ -116,10 +123,16 @@ export class DrawComponent implements OnInit, OnDestroy {
       if (key === 'p') this.activatePen();
       if (key === 'b' || key === 'f') this.toggleBucketTool();
       if (key === 'e') this.toggleEraser();
+      if (key === '1') this.selectBrushSize(0); // Tratto Fine
+      if (key === '2') this.selectBrushSize(1); // Tratto Medio
+      if (key === '3') this.selectBrushSize(2); // Tratto Spesso
     }
   }
 
   fetchRandomWords(): void {
+    // Raccogliamo le parole attualmente mostrate per escluderle dalla nuova estrazione
+    const currentWordsToExclude = this.wordOptions().map((w) => w.text);
+
     this.stopTimer();
     this.cleanupCanvas();
     this.phase.set('SELECT_WORD');
@@ -127,7 +140,7 @@ export class DrawComponent implements OnInit, OnDestroy {
     this.isLoadingWords.set(true);
     this.errorMessage.set(null);
 
-    this.wordService.getRandomWords(3).subscribe({
+    this.wordService.getRandomWords(3, currentWordsToExclude).subscribe({
       next: (words) => {
         this.wordOptions.set(words);
         this.isLoadingWords.set(false);

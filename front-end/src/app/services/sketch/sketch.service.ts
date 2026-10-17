@@ -11,9 +11,17 @@ export class SketchService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = API_CONFIG.endpoints.sketches;
 
-  // Recupera la galleria degli sketch con filtri opzionali sulla query string
-  getSketches(category?: string, authorId?: number): Observable<Sketch[]> {
-    let params = new HttpParams();
+// Recupera la galleria degli sketch con filtri opzionali e paginazione sulla query string
+  getSketches(
+    category?: string,
+    authorId?: number,
+    limit = 24,
+    offset = 0
+  ): Observable<Sketch[]> {
+    let params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
+
     if (category && category !== 'Tutte') {
       params = params.set('category', category);
     }
