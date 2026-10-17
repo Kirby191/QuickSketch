@@ -25,6 +25,7 @@ export interface SketchUserContext {
   attemptsCount: number;
   remainingAttempts: number;
   guessedWords: string[];
+  closeWords: string[];
 }
 
 export interface Sketch {

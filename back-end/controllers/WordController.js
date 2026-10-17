@@ -1,5 +1,6 @@
 import { Word } from "../models/Database.js";
 import { Sequelize } from "sequelize";
+import { HttpError } from "../utils/HttpError.js";
 
 const MIN_WORDS = 3;
 const MAX_WORDS = 5; // Impedisce a un utente di estrarre l'intero DB
@@ -36,7 +37,7 @@ export class WordController {
             const { text, category, difficulty } = req.body;
 
             if (!text) {
-                return res.status(400).json({ error: "Il testo della parola è obbligatorio." });
+                throw new HttpError(400, "Il testo della parola è obbligatorio.");
             }
 
             // Normalizziamo la parola (tutto minuscolo e senza spazi extra)
@@ -55,7 +56,7 @@ export class WordController {
         } catch (err) {
             // Se la parola esiste già, Sequelize solleverà un errore per violazione del vincolo 'unique'
             if (err.name === 'SequelizeUniqueConstraintError') {
-                return res.status(409).json({ error: "Questa parola è già presente nel dizionario." });
+                throw new HttpError(409, "Questa parola è già presente nel dizionario.");
             }
             next(err);
         }
@@ -66,14 +67,14 @@ export class WordController {
         try {
             const rawText = req.params.text;
             if (!rawText) {
-                return res.status(400).json({ error: "Specifica la parola da eliminare." });
+                throw new HttpError(400, "Specifica la parola da eliminare.");
             }
 
             const normalizedText = rawText.trim().toLowerCase();
             const wordToDelete = await Word.findOne({ where: { text: normalizedText } });
 
             if (!wordToDelete) {
-                return res.status(404).json({ error: `La parola '${normalizedText}' non esiste nel dizionario.` });
+                throw new HttpError(404, `La parola '${normalizedText}' non esiste nel dizionario.`);
             }
 
             await wordToDelete.destroy(); // Elimina l'entità dal DB

@@ -20,6 +20,9 @@ export function errorHandler(err, req, res, next) {
     if (err.name === "SequelizeUniqueConstraintError") {
         status = 409;
         message = "Valore duplicato: l'elemento esiste già nel database.";
+    } else if (err.name === "SequelizeForeignKeyConstraintError") {
+        status = 401;
+        message = "La sessione non è più associata a un utente valido.";
     } else if (err.name === "SequelizeValidationError") {
         status = 400;
         message = err.errors?.map(e => e.message).join(", ") || "Dati non validi.";

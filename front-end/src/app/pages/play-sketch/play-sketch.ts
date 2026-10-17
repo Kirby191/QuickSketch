@@ -122,6 +122,9 @@ export class PlaySketchComponent {
     this.sketchService.getSketchById(sketchId).subscribe({
       next: (data) => {
         this.sketch.set(data);
+        this.closeWordsSet.set(
+          new Set(data.userContext?.closeWords || [])
+        );
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -180,6 +183,7 @@ export class PlaySketchComponent {
               attemptsCount: res.attemptsCount,
               remainingAttempts: res.remainingAttempts,
               guessedWords: res.guessedWords,
+              closeWords: Array.from(this.closeWordsSet()),
             },
           };
         });

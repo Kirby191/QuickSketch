@@ -1,5 +1,6 @@
 import { Sketch, User, Word, Attempt } from "../models/Database.js";
 import { HttpError } from "../utils/HttpError.js";
+import { AttemptController } from "./AttemptController.js";
 
 const MAX_DRAWING_TIME_SECONDS = 60;
 const MAX_ATTEMPTS = 10;
@@ -26,6 +27,12 @@ export class SketchController {
 
         // La soluzione viene svelata SOLO all'autore o a chi ha già vinto/perso (esauriti i 10 tentativi)
         const canSeeWord = isAuthor || (userAttempt && (userAttempt.status === 'WON' || userAttempt.status === 'LOST'));
+        const guessedWords = (userAttempt && userAttempt.guessedWords)
+            ? JSON.parse(userAttempt.guessedWords)
+            : [];
+        const closeWords = guessedWords.filter(word =>
+            AttemptController.isGuessClose(word.toLowerCase(), sketch.word.toLowerCase())
+        );
 
         return {
             id: sketch.id,
@@ -47,7 +54,8 @@ export class SketchController {
                 status: isAuthor ? 'AUTHOR' : (userAttempt ? userAttempt.status : 'NOT_STARTED'),
                 attemptsCount: userAttempt ? userAttempt.attemptsCount : 0,
                 remainingAttempts: userAttempt ? (MAX_ATTEMPTS - userAttempt.attemptsCount) : MAX_ATTEMPTS,
-                guessedWords: (userAttempt && userAttempt.guessedWords) ? JSON.parse(userAttempt.guessedWords) : []
+                guessedWords,
+                closeWords
             } : null
         };
     }

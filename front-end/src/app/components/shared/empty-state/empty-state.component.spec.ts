@@ -12,6 +12,8 @@ describe('EmptyStateComponent', () => {
 
     fixture = TestBed.createComponent(EmptyStateComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('title', 'Test');
+    fixture.componentRef.setInput('description', 'Test description');
     await fixture.whenStable();
   });
 

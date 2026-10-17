@@ -6,6 +6,10 @@ const WINDOW_RESET_MS = 10 * 60 * 1000; // Reset fisiologico dopo 10 minuti di i
 
 function getClientKey(req) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown-ip';
+    // Su /signup blocchiamo per IP (evita la creazione massiva di account random).
+    if (req.path.includes('signup')) {
+        return `${ip}:signup`;
+    }
     const rawUser = typeof req.body?.username === 'string'
         ? req.body.username.trim().toLowerCase()
         : 'global';
